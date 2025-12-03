@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Dswi_Proyecto_Topico.Models.Entitties;
+using Dswi_Proyecto_Topico.Models.Entities;
 
 namespace Dswi_Proyecto_Topico.Data
 {

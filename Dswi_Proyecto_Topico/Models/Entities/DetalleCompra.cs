@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Dswi_Proyecto_Topico.Models.Entitties
+namespace Dswi_Proyecto_Topico.Models.Entities
 {
     public class DetalleCompra
     {

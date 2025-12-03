@@ -1,9 +1,9 @@
-﻿using Dswi_Proyecto_Topico.Models.Entitties;
+﻿using Dswi_Proyecto_Topico.Models.Entities;
 using System.ComponentModel.DataAnnotations;
 
 namespace Dswi_Proyecto_Topico.Models.ViewModels
 {
-    public class UsuarioViewMode
+    public class UsuarioViewModel
     {
         public int UsuarioId { get; set; }
 

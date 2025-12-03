@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Dswi_Proyecto_Topico.Models.Entitties
+namespace Dswi_Proyecto_Topico.Models.Entities
 {
     public class Rol
     {
