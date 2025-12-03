@@ -1,0 +1,184 @@
+﻿@model TopicoMedico.Models.ViewModels.LoginViewModel
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Iniciar Sesión - Sistema Tópico Médico</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .login-container {
+            max-width: 450px;
+            width: 100%;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            padding: 50px 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+            .login-header i {
+                font-size: 4rem;
+                color: #667eea;
+                margin-bottom: 20px;
+            }
+
+            .login-header h2 {
+                color: #1e293b;
+                font-weight: 700;
+                margin-bottom: 10px;
+            }
+
+            .login-header p {
+                color: #64748b;
+                margin: 0;
+            }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 15px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+            .form-control:focus {
+                border-color: #667eea;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            }
+
+        .input-group-text {
+            background: #f1f5f9;
+            border: 2px solid #e2e8f0;
+            border-right: none;
+            border-radius: 10px 0 0 10px;
+            color: #64748b;
+        }
+
+        .input-group .form-control {
+            border-left: none;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            font-size: 1.05rem;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+            .btn-login:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            }
+
+        .text-danger {
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <i class="fas fa-hospital-alt"></i>
+                <h2>Tópico Médico</h2>
+                <p>Sistema de Gestión Médica</p>
+            </div>
+
+            @if (!string.IsNullOrEmpty(ViewBag.Error))
+            {
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle me-2"></i>@ViewBag.Error
+                </div>
+            }
+
+            <form asp-action="Login" method="post">
+                <div class="form-group">
+                    <label asp-for="NombreUsuario" class="form-label">
+                        <i class="fas fa-user me-1"></i>Usuario
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                        <input asp-for="NombreUsuario" class="form-control" placeholder="Ingrese su usuario" autofocus />
+                    </div>
+                    <span asp-validation-for="NombreUsuario" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Contraseña" class="form-label">
+                        <i class="fas fa-lock me-1"></i>Contraseña
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                        <input asp-for="Contraseña" type="password" class="form-control" placeholder="Ingrese su contraseña" />
+                    </div>
+                    <span asp-validation-for="Contraseña" class="text-danger"></span>
+                </div>
+
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <button type="submit" class="btn btn-login">
+                    <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                </button>
+            </form>
+
+            <div class="text-center mt-4">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Usuario por defecto: <strong>admin</strong> / <strong>Admin123!</strong>
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+</body>
+</html>

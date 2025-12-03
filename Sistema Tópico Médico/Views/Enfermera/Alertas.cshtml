@@ -1,0 +1,178 @@
+﻿@model IEnumerable<TopicoMedico.Models.Entities.Alerta>
+
+@{
+    ViewData["Title"] = "Alertas y Notificaciones";
+    var alertasNoLeidas = Model.Where(a => !a.Leida);
+    var alertasLeidas = Model.Where(a => a.Leida);
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="fas fa-bell"></i> Alertas y Notificaciones</h2>
+            <p class="text-muted">Centro de notificaciones para enfermería</p>
+        </div>
+    </div>
+
+    <!-- Resumen -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-danger shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">Sin Leer</h6>
+                            <h2 class="mb-0">@alertasNoLeidas.Count()</h2>
+                        </div>
+                        <div class="fs-1 opacity-75">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-secondary shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">Leídas</h6>
+                            <h2 class="mb-0">@alertasLeidas.Count()</h2>
+                        </div>
+                        <div class="fs-1 opacity-75">
+                            <i class="fas fa-envelope-open"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-info shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">Total</h6>
+                            <h2 class="mb-0">@Model.Count()</h2>
+                        </div>
+                        <div class="fs-1 opacity-75">
+                            <i class="fas fa-inbox"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center py-5">
+            <i class="fas fa-inbox fa-4x mb-3 d-block"></i>
+            <h4>No hay alertas</h4>
+            <p class="mb-0">Todas las notificaciones aparecerán aquí</p>
+        </div>
+    }
+    else
+    {
+        <!-- Alertas No Leídas -->
+        @if (alertasNoLeidas.Any())
+        {
+            <div class="mb-4">
+                <h4 class="mb-3">
+                    <i class="fas fa-exclamation-circle text-danger"></i>
+                    Alertas Nuevas (@alertasNoLeidas.Count())
+                </h4>
+
+                @foreach (var alerta in alertasNoLeidas.OrderByDescending(a => a.FechaGeneracion))
+                {
+                    <div class="card mb-3 border-start border-danger border-5 shadow-sm">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    @if (alerta.TipoAlerta == "Cita")
+                                    {
+                                        <div class="bg-primary text-white rounded-circle p-3">
+                                            <i class="fas fa-calendar-check fa-2x"></i>
+                                        </div>
+                                    }
+                                    else if (alerta.TipoAlerta == "Urgente")
+                                    {
+                                        <div class="bg-danger text-white rounded-circle p-3">
+                                            <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                        </div>
+                                    }
+                                    else if (alerta.TipoAlerta == "Stock")
+                                    {
+                                        <div class="bg-warning text-white rounded-circle p-3">
+                                            <i class="fas fa-box fa-2x"></i>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-info text-white rounded-circle p-3">
+                                            <i class="fas fa-info-circle fa-2x"></i>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="col">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <h5 class="mb-1">
+                                                <span class="badge bg-danger me-2">NUEVA</span>
+                                                @alerta.TipoAlerta
+                                            </h5>
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock"></i>
+                                                @alerta.FechaGeneracion.ToString("dd/MM/yyyy HH:mm")
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <p class="mb-0">@alerta.Mensaje</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Alertas Leídas -->
+        @if (alertasLeidas.Any())
+        {
+            <div class="mb-4">
+                <h4 class="mb-3">
+                    <i class="fas fa-check-circle text-secondary"></i>
+                    Alertas Leídas (@alertasLeidas.Count())
+                </h4>
+
+                @foreach (var alerta in alertasLeidas.OrderByDescending(a => a.FechaGeneracion).Take(10))
+                {
+                    <div class="card mb-3 shadow-sm bg-light">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <div class="bg-secondary text-white rounded-circle p-2">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <h6 class="mb-1 text-muted">@alerta.TipoAlerta</h6>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock"></i>
+                                        @alerta.FechaGeneracion.ToString("dd/MM/yyyy HH:mm")
+                                    </small>
+                                    <p class="mb-0 mt-2 text-muted">@alerta.Mensaje</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+
+    <div class="mt-4">
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver al Dashboard
+        </a>
+    </div>
+</div>

@@ -1,0 +1,125 @@
+﻿@model TopicoMedico.Models.ViewModels.Atencion
+@{
+    ViewData["Title"] = "Registrar Atencion";
+}
+<h2>Registrar Atención</h2>
+
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label>Código de Alumno</label>
+        <input type="text" id="CodigoAlumno" class="form-control" />
+        <button type="button" class="btn btn-info mt-2" id="btnBuscarAlumno">Buscar Alumno</button>
+        <div id="resultadoBusqueda" class="mt-2"></div>
+        <input type="hidden" asp-for="AlumnoId" id="AlumnoId" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Fecha"></label>
+        <input asp-for="Fecha" class="form-control" type="date" />
+        <span asp-validation-for="Fecha" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Hora"></label>
+        <input asp-for="Hora" class="form-control" type="time" />
+        <span asp-validation-for="Hora" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Detalles"></label>
+        <textarea asp-for="Detalles" class="form-control"></textarea>
+        <span asp-validation-for="Detalles" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Diagnostico"></label>
+        <textarea asp-for="Diagnostico" class="form-control"></textarea>
+    </div>
+
+    <h4>Medicamentos</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Medicamento</th>
+                <th>Stock</th>
+                <th>Cantidad</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var med in ViewBag.Medicamentos)
+            {
+                <tr>
+                    <td>@med.Nombre</td>
+                    <td>@med.Stock</td>
+                    <td>
+                        <input type="number" name="cantidades" min="0" max="@med.Stock" class="form-control" />
+                        <input type="hidden" name="medicamentoIds" value="@med.MedicamentoId" />
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div class="mb-3 text-end">
+        <a href="/Enfermera/RegistrarCita" class="btn btn-primary">
+            <i class="fas fa-calendar-plus me-2"></i>
+            Registrar Cita
+        </a>
+    </div>
+    <button type="submit" class="btn btn-primary">Registrar</button>
+
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById("btnBuscarAlumno").addEventListener("click", async function () {
+
+            var codigo = document.getElementById("CodigoAlumno").value;
+            var divResultado = document.getElementById("resultadoBusqueda");
+
+            if (!codigo) {
+                divResultado.innerHTML = `<span class="text-danger">Ingrese un código</span>`;
+                return;
+            }
+
+            try {
+                const response = await fetch('@Url.Action("BuscarAlumno", "Atencion")', {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "RequestVerificationToken": document.querySelector("input[name='__RequestVerificationToken']").value
+                    },
+                    body: JSON.stringify({ codigo: codigo })
+                });
+
+                const data = await response.json();
+                console.log(data); // útil para depuración
+
+                if (data.success) {
+                    // Alumno encontrado
+                    document.getElementById("AlumnoId").value = data.alumnoId;
+
+                    divResultado.innerHTML = `
+                        <div class="alert alert-success">
+                            Alumno encontrado: <strong>${data.nombre}</strong>
+                        </div>`;
+                } else {
+                    // Alumno no encontrado → mostrar botón para registrar
+                    divResultado.innerHTML = `
+                        <div class="alert alert-danger">
+                            ${data.mensaje}<br>
+                            <a href="${data.registrarUrl}" class="btn btn-warning mt-2">Registrar Alumno</a>
+                        </div>`;
+                }
+
+            } catch (error) {
+                console.error("Error al buscar alumno:", error);
+                divResultado.innerHTML = `<span class="text-danger">Ocurrió un error al buscar el alumno.</span>`;
+            }
+
+        });
+    </script>
+
+}

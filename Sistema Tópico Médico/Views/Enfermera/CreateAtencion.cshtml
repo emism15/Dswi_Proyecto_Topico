@@ -1,0 +1,90 @@
+﻿@model TopicoMedico.Models.ViewModels.Atencion
+@{
+    ViewData["Title"] = "Registrar Atencion";
+}
+<h2>Registrar Atención</h2>
+
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label>Código de Alumno</label>
+        <input type="text" id="CodigoAlumno" class="form-control" />
+        <button type="button" class="btn btn-info mt-2" id="btnBuscarAlumno">Buscar Alumno</button>
+        <div id="nombreAlumno" class="mt-2 text-success"></div>
+        <input type="hidden" asp-for="AlumnoId" id="AlumnoId" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Fecha"></label>
+        <input asp-for="Fecha" class="form-control" type="date" />
+        <span asp-validation-for="Fecha" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Hora"></label>
+        <input asp-for="Hora" class="form-control" type="time" />
+        <span asp-validation-for="Hora" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Detalles"></label>
+        <textarea asp-for="Detalles" class="form-control"></textarea>
+        <span asp-validation-for="Detalles" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Diagnostico"></label>
+        <textarea asp-for="Diagnostico" class="form-control"></textarea>
+    </div>
+
+    <h4>Medicamentos</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Medicamento</th>
+                <th>Stock</th>
+                <th>Cantidad</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var med in ViewBag.Medicamentos)
+            {
+                <tr>
+                    <td>@med.Nombre</td>
+                    <td>@med.Stock</td>
+                    <td>
+                        <input type="number" name="cantidades" min="0" max="@med.Stock" class="form-control" />
+                        <input type="hidden" name="medicamentoIds" value="@med.MedicamentoId" />
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-primary">Registrar</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById("btnBuscarAlumno").addEventListener("click", async function() {
+            var codigo = document.getElementById("CodigoAlumno").value;
+            if(!codigo) { alert("Ingrese código de alumno"); return; }
+
+            const response = await fetch("@Url.Action("BuscarAlumno")", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "RequestVerificationToken": $("input[name='__RequestVerificationToken']").val() },
+                body: JSON.stringify({ codigo: codigo })
+            });
+
+            const data = await response.json();
+            if(data.success){
+                document.getElementById("AlumnoId").value = data.alumnoId;
+                document.getElementById("nombreAlumno").innerText = data.nombre;
+            } else {
+                alert(data.mensaje);
+            }
+        });
+    </script>
+}
