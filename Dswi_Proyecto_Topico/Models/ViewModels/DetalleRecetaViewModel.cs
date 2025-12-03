@@ -2,7 +2,7 @@
 
 namespace Dswi_Proyecto_Topico.Models.ViewModels
 {
-    public class DetalleReceta
+    public class DetalleRecetaViewModel
     {
 
         [Required(ErrorMessage = "Debe seleccionar un producto")]

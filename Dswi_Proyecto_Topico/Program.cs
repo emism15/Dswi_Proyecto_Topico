@@ -1,12 +1,17 @@
-using Microsoft.EntityFrameworkCore;
 using Dswi_Proyecto_Topico.Data;
 using Dswi_Proyecto_Topico.Services;
 using Dswi_Proyecto_Topico.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
+// Agregar servicios al contenedor
+builder.Services.AddControllersWithViews();
+
+// Configurar DbContext con SQL Server
+builder.Services.AddDbContext<TopicoDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Configurar sesiones para autenticación
 builder.Services.AddSession(options =>

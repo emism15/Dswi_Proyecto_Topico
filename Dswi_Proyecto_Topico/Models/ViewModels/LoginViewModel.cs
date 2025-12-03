@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
+
 namespace Dswi_Proyecto_Topico.Models.ViewModels
 {
     public class LoginViewModel
