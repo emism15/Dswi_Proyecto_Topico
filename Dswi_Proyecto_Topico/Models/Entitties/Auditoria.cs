@@ -27,7 +27,7 @@ namespace Dswi_Proyecto_Topico.Models.Entitties
         [StringLength(50)]
         public string IPAddress { get; set; }
 
-        // Navegación
+        //Navegación
         [ForeignKey("UsuarioId")]
         public virtual Usuario Usuario { get; set; }
     }

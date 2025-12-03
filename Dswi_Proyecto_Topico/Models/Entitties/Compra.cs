@@ -21,7 +21,7 @@ namespace Dswi_Proyecto_Topico.Models.Entitties
 
         public DateTime FechaCompra { get; set; } = DateTime.Now;
 
-        // 🟢 CORRECCIÓN: Propiedad faltante para registro
+       
         public DateTime FechaRegistro { get; set; } = DateTime.Now;
 
         [Required]
