@@ -6,8 +6,6 @@ namespace Dswi_Proyecto_Topico.Models.ViewModels
     {
         public int AtencionId { get; set; }
 
-        [Required(ErrorMessage = "El código es obligatorio")]
-        [RegularExpression(@"^i\d{9}$", ErrorMessage = "El código debe iniciar con 'i' seguido de 9 números")]
         public int AlumnoId { get; set; }
         public DateTime Fecha { get; set; }
 

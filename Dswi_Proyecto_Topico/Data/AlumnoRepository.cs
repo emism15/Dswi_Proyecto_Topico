@@ -12,30 +12,46 @@ namespace Dswi_Proyecto_Topico.Data
             _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
 
-        public async Task AgregarAlumnoAsync(AlumnoModel alumno)
+        public async Task<bool> ExisteCodigoAsync(string codAlumno)
         {
-            var sql = @"INSERT INTO Alumno (CodigoAlumno, NombreCompleto, FechaNacimiento, Edad, DNI, Telefono, Correo)
-                        VALUES (@CodigoAlumno, @NombreCompleto, @FechaNacimiento, @Edad, @DNI, @Telefono, @Correo)";
-            using (var conn = new SqlConnection(_connectionString))
-            using (var cmd = new SqlCommand(sql, conn))
+            var sql = "SELECT COUNT(*) FROM Alumno WHERE CodAlumno = @CodAlumno";
+            using( var conn = new SqlConnection(_connectionString))
+                using ( var cmd = new SqlCommand(sql, conn))
             {
-                cmd.Parameters.AddWithValue("@CodigoAlumno", alumno.CodigoAlumno);
-                cmd.Parameters.AddWithValue("@NombreCompleto", alumno.NombreCompleto);
-                cmd.Parameters.AddWithValue("@FechaNacimiento", alumno.FechaNacimiento);
-                cmd.Parameters.AddWithValue("@Edad", alumno.Edad);
-                cmd.Parameters.AddWithValue("@DNI", alumno.DNI);
-                cmd.Parameters.AddWithValue("@Telefono", (object)alumno.Telefono ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("@Correo", (object)alumno.Correo ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@CodAlumno", codAlumno);
+
+                await conn.OpenAsync();
+                int count = (int)await cmd.ExecuteScalarAsync();
+                return count > 0;
+
+            }
+        }
+
+        public async Task AgregarAlumnoAsync(AlumnoModel alumnoModel)
+        {
+            var sql = @"INSERT INTO Alumno(CodAlumno, NombreCompleto, FechaNacimiento, DNI, Telefono, Correo)
+                       VALUES (@CodAlumno, @NombreCompleto, @FechaNacimiento,@DNI, @Telefono, @Correo)";
+            using( var conn = new SqlConnection(_connectionString))
+                using ( var cmd = new SqlCommand(sql, conn))
+            {
+                cmd.Parameters.AddWithValue("@CodAlumno", alumnoModel.Codigo);
+                cmd.Parameters.AddWithValue("@NombreCompleto", alumnoModel.NombreCompleto);
+                cmd.Parameters.AddWithValue("@FechaNacimiento", alumnoModel.FechaNacimiento);
+                cmd.Parameters.AddWithValue("@Edad", alumnoModel.Edad);
+                cmd.Parameters.AddWithValue("@DNI", alumnoModel.DNI);
+                cmd.Parameters.AddWithValue("@Telefono", (object)alumnoModel.Telefono ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Correo", (object)alumnoModel.Correo ?? DBNull.Value);
 
                 await conn.OpenAsync();
                 await cmd.ExecuteNonQueryAsync();
             }
-
         }
 
-        public async Task<AlumnoModel> BuscarAlumnoPorCodigoAsync( string codigoAlumno)
+
+        /*
+        public async Task<AlumnoModel?> BuscarAlumnoPorCodigoAsync( string codigoAlumno)
         {
-            var sql = "SELECT * FROM Alumno WHERE CodigoAlumno = @CodigoAlumno";
+            var sql = "SELECT AlumnoId, CodigoAlumno, NombreCompleto, FechaNacimiento, Edad, DNI, Telefono, Correo FROM Alumno WHERE CodigoAlumno = @CodigoAlumno";
             using (var conn = new SqlConnection(_connectionString))
             using (var cmd = new SqlCommand(sql, conn))
             {
@@ -63,5 +79,8 @@ namespace Dswi_Proyecto_Topico.Data
             }
 
         }
-    }
+        
+        */
+
+}
 }
