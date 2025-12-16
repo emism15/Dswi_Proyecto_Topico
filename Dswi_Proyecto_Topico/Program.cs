@@ -1,6 +1,4 @@
 using Dswi_Proyecto_Topico.Data;
-using Dswi_Proyecto_Topico.Services;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +7,6 @@ builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
 
 
 builder.Services.AddScoped<AuthRepository>();
-builder.Services.AddScoped<AuthService>();
 builder.Services.AddSession();
 
 var app = builder.Build();
@@ -32,6 +29,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Auth}/{action=Login}/{id?}");
 
 app.Run();

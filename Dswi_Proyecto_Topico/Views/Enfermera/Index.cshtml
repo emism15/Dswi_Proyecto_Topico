@@ -1,0 +1,128 @@
+﻿@model Dswi_Proyecto_Topico.Models.ViewModels.DashboardEnfermeraViewModel;
+
+@{
+    ViewData["Title"] = "Dashboard Enfermera";
+}
+
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-user-nurse me-2"></i>Panel de Enfermería</h2>
+    <span class="text-muted">@DateTime.Now.ToString("dddd, dd MMMM yyyy")</span>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="card border-info">
+            <div class="card-body text-center">
+                <i class="fas fa-calendar-check fa-3x text-info mb-3"></i>
+                <h3 class="display-5 fw-bold">@Model.CitasPendientes</h3>
+                <p class="text-muted mb-0">Citas Pendientes</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card border-success">
+            <div class="card-body text-center">
+                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                <h3 class="display-5 fw-bold">@Model.PacientesAtendidosHoy</h3>
+                <p class="text-muted mb-0">Pacientes Atendidos Hoy</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card border-warning">
+            <div class="card-body text-center">
+                <i class="fas fa-calendar-day fa-3x text-warning mb-3"></i>
+                <h3 class="display-6 fw-bold">@Model.ProximasCitas.Count</h3>
+                <p class="text-muted mb-0">Próximas Citas</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Próximas citas -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Próximas Citas</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.ProximasCitas != null && Model.ProximasCitas.Any())
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var cita in Model.ProximasCitas.Take(5))
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>@cita.Paciente.NombreCompleto</strong>
+                                    <br />
+                                    <small class="text-muted">@cita.FechaCita.ToString("dd/MM/yyyy HH:mm")</small>
+                                </div>
+                                <a href="/Enfermera/Atender/@cita.CitaId" class="btn btn-sm btn-primary">Atender</a>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <div class="text-center py-3 text-muted">
+                        <i class="fas fa-check-circle fa-3x mb-2"></i>
+                        <p>No hay próximas citas</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Accesos rápidos -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-info text-dark">
+                <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Accesos Rápidos</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-2 text-center">
+
+                    <div class="col-6">
+                        <a href="/Enfermera/RegistrarCita" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-calendar-plus me-2"></i>
+                            Registrar Cita
+                        </a>
+                    </div>
+
+                    <div class="col-6">
+                        <a href="/Enfermera/Citas" class="btn btn-outline-success w-100">
+                            <i class="fas fa-calendar-check me-2"></i>
+                            Ver Citas
+                        </a>
+                    </div>
+
+                    <div class="col-6">
+                        <a href="/Atencion/Create" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-stethoscope me-2"></i>
+                            Registrar Atención
+                        </a>
+                    </div>
+
+                    <div class="col-6">
+                        <a href="/Alumno/Create" class="btn btn-outline-success w-100">
+                            <i class="fas fa-user-plus me-2"></i>
+                            Registrar Alumno
+                        </a>
+                    </div>
+
+                    <div class="col-12">
+                        <a href="/Enfermera/Alertas" class="btn btn-outline-warning w-100">
+                            <i class="fas fa-bell me-2"></i>
+                            Alertas
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
