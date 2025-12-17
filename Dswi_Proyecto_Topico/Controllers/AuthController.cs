@@ -17,11 +17,19 @@ namespace Dswi_Proyecto_Topico.Controllers
             _authRepo = authRepo;
         }
 
+        //GET: Auth/Login
         [HttpGet]
         public IActionResult Login()
         {
+            // Si ya está autenticado, redirigir al dashboard correspondiente
+            if (HttpContext.Session.IsAuthenticated())
+            {
+                return RedirectToAction("Index", GetDashboardByRole());
+            }
             return View();
         }
+
+        //POST: Auth/Login
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -39,24 +47,32 @@ namespace Dswi_Proyecto_Topico.Controllers
                 return View(model);
             }
 
+            // Guardar información en sesión
             HttpContext.Session.SetInt32("UsuarioId", usuario.UsuarioId);
+            HttpContext.Session.SetInt32("RolId", usuario.RolId);
             HttpContext.Session.SetString("NombreUsuario", usuario.NombreUsuario);
+            HttpContext.Session.SetString("NombreCompleto", usuario.NombreCompleto);
             HttpContext.Session.SetString("NombreRol", usuario.Rol.NombreRol);
 
+            // Si debe cambiar contraseña
             if (usuario.DebecambiarContraseña)
                 return RedirectToAction("CambiarContraseña");
 
+            // Redirigir según rol
             return RedirectToAction("Index", GetDashboardByRole());
         }
 
 
-
+        // GET: Auth/CambiarContraseña
         [HttpGet]
         public IActionResult CambiarContraseña()
         {
+            if (!HttpContext.Session.IsAuthenticated())
+                return RedirectToAction("Login");
             return View();
         }
 
+        // POST: Auth/CambiarContraseña
         [HttpPost]
         public async Task<IActionResult> CambiarContraseña(CambioContraseñaViewModel model)
         {
@@ -65,16 +81,27 @@ namespace Dswi_Proyecto_Topico.Controllers
 
             int usuarioId = HttpContext.Session.GetUsuarioId().Value;
 
-            bool ok = await _authRepo.CambiarContraseñaAsync(
-                usuarioId, model.ContraseñaActual, model.ContraseñaNueva);
+            var resultado = await _authRepo.CambiarContraseñaAsync(
+                 usuarioId,
+                model.ContraseñaActual,
+                model.ContraseñaNueva);
 
-            if (!ok)
+            if (!resultado)
             {
-                ModelState.AddModelError("", "Contraseña actual incorrecta");
+                ModelState.AddModelError("", "La contraseña actual es incorrecta");
                 return View(model);
             }
 
+            TempData["Success"] = "Contraseña actualizada correctamente";
             return RedirectToAction("Index", GetDashboardByRole());
+        }
+
+        // POST: Auth/Logout
+        [HttpPost]
+        public IActionResult Logout()
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login");
         }
 
         private string GetDashboardByRole()
@@ -86,10 +113,27 @@ namespace Dswi_Proyecto_Topico.Controllers
                 "Administrador" => "Admin",
                 "Enfermera" => "Enfermera",
                 "Paciente" => "Paciente",
-                _ => "Home"
+                _ => "Auth"
             };
         }
 
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult GenerarHash(string password)
+        {
+            if (string.IsNullOrEmpty(password))
+            {
+                return Content("Uso: /Auth/GenerarHash?password=tucontraseña");
+            }
+
+            var hash = PasswordHelper.HashPassword(password);
+            return Content($@"
+            <h2>Generador de Hash SHA256</h2>
+            <p><strong>Contraseña:</strong> {password}</p>
+            <p><strong>Hash SHA256:</strong></p>
+            <textarea style='width:100%; height:100px; font-family:monospace;'>{hash}</textarea>
+        ", "text/html");
+        }
 
     }
 }
