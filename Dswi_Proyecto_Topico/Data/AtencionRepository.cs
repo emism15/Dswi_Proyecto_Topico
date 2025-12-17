@@ -12,102 +12,89 @@ namespace Dswi_Proyecto_Topico.Data
             _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
 
-        /*
-        public async Task<int> RegistrarAtencionAsync(AtencionModel atencion)
+        
+        
+      public async Task RegistrarAtencionAsync(AtencionModel model)
         {
+            var sql = @"INSERT INTO Atencion(AlumnoId, Fecha, Hora, DetallesClinicos, DiagnosticoPreliminar)
+                    VALUES(@AlumnoId, @Fecha, @Hora, @DetallesClinicos, @DiagnosticoPreliminar)";
             using (var conn = new SqlConnection(_connectionString))
+            using (var cmd = new SqlCommand(sql, conn))
             {
+                cmd.Parameters.AddWithValue("@AlumnoId", model.AlumnoId);
+                cmd.Parameters.AddWithValue("@Fecha", model.FechaAtencion.Date);
+                cmd.Parameters.AddWithValue("@Hora", model.HoraAtencion);
+                cmd.Parameters.AddWithValue("@DetallesClinicos", model.DetallesClinicos);
+                cmd.Parameters.AddWithValue("@DiagnosticoPreliminar", model.DiagnosticoPreliminar);
+
                 await conn.OpenAsync();
-
-                using (var transaction = conn.BeginTransaction())
-                {
-                    try
-                    {
-                        // 1) INSERTAR LA ATENCIÓN
-                        var sqlAtencion = @"
-                    INSERT INTO Atencion (AlumnoId, Fecha, Hora, Detalles, Diagnostico)
-                    VALUES (@AlumnoId, @Fecha, @Hora, @Detalles, @Diagnostico);
-                    SELECT SCOPE_IDENTITY();
-                ";
-
-                        int atencionId;
-
-                        using (var cmd = new SqlCommand(sqlAtencion, conn, transaction))
-                        {
-                            cmd.Parameters.AddWithValue("@AlumnoId", atencion.AlumnoId);
-                            cmd.Parameters.AddWithValue("@Fecha", atencion.Fecha);
-                            cmd.Parameters.AddWithValue("@Hora", atencion.Hora);
-                            cmd.Parameters.AddWithValue("@Detalles", atencion.Detalles);
-                            cmd.Parameters.AddWithValue("@Diagnostico",
-                                (object)atencion.Diagnostico ?? DBNull.Value);
-
-                            atencionId = Convert.ToInt32(await cmd.ExecuteScalarAsync());
-                        }
-
-                        // 2) PROCESAR CADA MEDICAMENTO ADMINISTRADO
-                        foreach (var med in atencion.Medicamentos)
-                        {
-                            // 2.1 Verificar stock disponible
-                            var sqlCheckStock = @"SELECT Stock FROM Medicamento WHERE MedicamentoId = @MedicamentoId";
-
-                            int stockActual;
-
-                            using (var cmdStock = new SqlCommand(sqlCheckStock, conn, transaction))
-                            {
-                                cmdStock.Parameters.AddWithValue("@MedicamentoId", med.MedicamentoId);
-
-                                object result = await cmdStock.ExecuteScalarAsync();
-                                stockActual = Convert.ToInt32(result);
-                            }
-
-                            if (stockActual < med.CantidadAdministrada)
-                            {
-                                throw new Exception($"El medicamento ID {med.MedicamentoId} no tiene stock suficiente. Disponible: {stockActual}");
-                            }
-
-                            // 2.2 Insertar detalle de la atención
-                            var sqlInsertMed = @"
-                        INSERT INTO AtencionMedicamento (AtencionId, MedicamentoId, CantidadAdministrada)
-                        VALUES (@AtencionId, @MedicamentoId, @CantidadAdministrada); ";
-
-                            using (var cmdInsert = new SqlCommand(sqlInsertMed, conn, transaction))
-                            {
-                                cmdInsert.Parameters.AddWithValue("@AtencionId", atencionId);
-                                cmdInsert.Parameters.AddWithValue("@MedicamentoId", med.MedicamentoId);
-                                cmdInsert.Parameters.AddWithValue("@CantidadAdministrada", med.CantidadAdministrada);
-
-                                await cmdInsert.ExecuteNonQueryAsync();
-                            }
-
-                            // 2.3 Descontar stock
-                            var sqlUpdateStock = @"
-                        UPDATE Medicamento
-                        SET Stock = Stock - @Cantidad
-                        WHERE MedicamentoId = @MedicamentoId;";
-
-                            using (var cmdUpdate = new SqlCommand(sqlUpdateStock, conn, transaction))
-                            {
-                                cmdUpdate.Parameters.AddWithValue("@Cantidad", med.CantidadAdministrada);
-                                cmdUpdate.Parameters.AddWithValue("@MedicamentoId", med.MedicamentoId);
-
-                                await cmdUpdate.ExecuteNonQueryAsync();
-                            }
-                        }
-
-                        // 3) CONFIRMAR TODO
-                        await transaction.CommitAsync();
-                        return atencionId;
-                    }
-                    catch
-                    {
-                        // Si algo sale mal, deshacemos todo
-                        await transaction.RollbackAsync();
-                        throw;
-                    }
-                }
+                await cmd.ExecuteReaderAsync();
             }
         }
+
+        /*
+        <!--Central-->
+
+<!--
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-success text-white">Datos de la Atención Médica</div>
+    
+    <div class="card-body">
+        <form asp-action="RegistrarAtencion" method="post">
+        <input type="hidden" asp-for="FechaAtencion" />
+            <input type="hidden" asp-for="HoraAtencion" />
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Fecha</label>
+                    <input class="form-control" value="@Model.FechaAtencion.ToString("dd/MM/yyyy")" readonly />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Hora</label>
+                    <input class="form-control" value="@Model.HoraAtencion.ToString(@"hh\:mm")" readonly />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Detalles Clínicos</label>
+                    <textarea asp-for="DetallesClinicos" class="form-control"></textarea>
+                    <span asp-validation-for="DetallesClinicos" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Diagnóstico Preliminar</label>
+                    <textarea asp-for="DiagnosticoPreliminar" class="form-control"></textarea>
+                    <span asp-validation-for="DiagnosticoPreliminar" class="text-danger"></span>
+            </div>
+        </div>
+        </form>
+    </div>
+</div>
+
+-->*/
+
+        /*
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+
+        public async Task<IActionResult> RegistrarAtencion(AtencionDetallesModel model)
+        {
+            if (!model.AlumnoEncontrado)
+            {
+                ModelState.AddModelError("", "Debe buscar y confirmar un alumno antes de registrar la atención.");
+                return View("RegistrarAtencion", model);
+            }
+            if(!ModelState.IsValid)
+            {
+                return View("RegistrarAtencion", model);
+
+            }
+
+            await atencionRepository.RegistrarAtencionAsync(model);
+
+            TempData["MensajeExito"] = "Atención registrada correctamente.";
+
+            return RedirectToAction("RegistrarAtencion");
+        }
         */
-       
+
+
+
     }
 }

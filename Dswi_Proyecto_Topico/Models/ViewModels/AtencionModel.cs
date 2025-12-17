@@ -4,17 +4,28 @@ namespace Dswi_Proyecto_Topico.Models.ViewModels
 {
     public class AtencionModel
     {
-        public int AtencionId { get; set; }
-
         public int AlumnoId { get; set; }
-        public DateTime Fecha { get; set; }
+        [Required(ErrorMessage = "El código es obligatorio")]
+        [RegularExpression(@"^i\d{9}$", ErrorMessage = "Formato invalido.  Ej: i200000000")]
+        public string Codigo { get; set; } = string.Empty;
+        public string NombreCompleto { get; set; } = string.Empty;
+        public string DNI { get; set; } = string.Empty;
+        public string Telefono { get; set; } = string.Empty;
+        public string Correo { get; set; } = string.Empty;
 
-        public TimeSpan Hora { get; set; }
+        public bool AlumnoEncontrado { get; set; } = false;
+        public DateTime FechaAtencion { get; set; }
+        public TimeSpan HoraAtencion { get; set; }
 
-        [Required(ErrorMessage = "Los detalles de la atención son obligatorios")]
-        public string Detalles { get; set; }
-        public string Diagnostico { get; set; }
+        
+        public string DetallesClinicos { get; set; } = string.Empty;
 
-        public List<AtencionMedicamentoModel> Medicamentos { get; set; } = new();
+        
+        public string DiagnosticoPreliminar { get; set; } = string.Empty;
+
+
+
+
+
     }
 }

@@ -1,5 +1,106 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model Dswi_Proyecto_Topico.Models.ViewModels.AtencionModel;
+
+
 @{
+    ViewData["Title"] = "Registrar Atencion";
+}
+<h2 class="mb-4">Registrar Atencion</h2>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        Busqueda de Alumno
+    </div>
+    <div class="card-body">
+        <form asp-action="BuscarAlumno" method="post" class="row g-03">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="col-md-9">
+                <label class="form-label">Codigo del alumno</label>
+                <input asp-for="Codigo" class="form-control" maxlength="10"
+                       oninput="this.value = this.value.replace(/[^i0-9]/g, '')"
+                       placeholder="Ingrese Código del Alumno. Ejemplo: i200000000" />
+
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Buscar</button>
+            </div>
+    </form>
+    </div>
+</div>
+@if (!Model.AlumnoEncontrado && ViewData.ModelState.ErrorCount > 0)
+{
+    <div class="alert alert-danger mt-2">
+        El código ingresado no existe en el sistema.
+        <br />
+        <a asp-controller="Enfermera" asp-action="RegistrarAlumno" class="btn btn-warning mt-2">
+            Registrar Alumno
+        </a>
+    </div>
+}
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">Datos del Alumno</div>
+        <div class="card-body">
+            <input type="hidden" asp-for="AlumnoId" />
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Codigo</label>
+                    <input class="form-control" value="@Model.Codigo" readonly />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Nombre y apellidos Completos</label>
+                    <input class="form-control" value="@Model.NombreCompleto" readonly />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">DNI</label>
+                    <input class="form-control" value="@Model.DNI" readonly />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Telefono</label>
+                    <input class="form-control" value="@Model.Telefono" readonly />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Correo</label>
+                    <input class="form-control" value="@Model.Correo" readonly />
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+<!--Central-->
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-success text-white">Datos de la Atención Médica</div>
+
+    <div class="card-body">
+        <form asp-action="RegistrarAtencion" method="post">
+            <input type="hidden" asp-for="FechaAtencion" />
+            <input type="hidden" asp-for="HoraAtencion" />
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Fecha</label>
+                    <input class="form-control" value="@Model.FechaAtencion.ToString("dd/MM/yyyy")" readonly />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Hora</label>
+                    <input class="form-control" value="@Model.HoraAtencion.ToString(@"hh\:mm")" readonly />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Detalles Clínicos</label>
+                    <textarea asp-for="DetallesClinicos" class="form-control"></textarea>
+                    <span asp-validation-for="DetallesClinicos" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Diagnóstico Preliminar</label>
+                    <textarea asp-for="DiagnosticoPreliminar" class="form-control"></textarea>
+                    <span asp-validation-for="DiagnosticoPreliminar" class="text-danger"></span>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts{
+    <partial name="_ValidationScriptsPartial" />
 }

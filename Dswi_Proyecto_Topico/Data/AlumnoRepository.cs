@@ -27,6 +27,36 @@ namespace Dswi_Proyecto_Topico.Data
             }
         }
 
+        public async Task<AtencionModel?> BuscarAlumnoPorCodigoAsync (string codigo)
+        {
+            var sql = @"SELECT AlumnoId, CodAlumno, NombreCompleto, DNI, Telefono, Correo 
+                       FROM Alumno 
+                       WHERE LOWER(CodAlumno) = LOWER(@CodAlumno)";
+            using( var conn = new SqlConnection(_connectionString))
+                using( var cmd = new SqlCommand(sql, conn))
+            {
+                cmd.Parameters.AddWithValue("@CodAlumno", codigo.Trim());
+                await conn.OpenAsync();
+                using( var reader = await cmd.ExecuteReaderAsync())
+                {
+                    if(await reader.ReadAsync())
+                    {
+                        return new AtencionModel
+                        {
+                            AlumnoId = reader.GetInt32(0),
+                            Codigo = reader.GetString(1).Trim(),
+                            NombreCompleto = reader.GetString(2).Trim(),
+                            DNI = reader.GetString(3).Trim(),
+                            Telefono = reader.GetString(4).Trim() ?? "",
+                            Correo = reader.GetString(5).Trim() ?? "",
+                            AlumnoEncontrado = true
+                        };
+                    }
+                    return null;
+                }
+            }
+        }
+
         public async Task AgregarAlumnoAsync(AlumnoModel alumnoModel)
         {
             var sql = @"INSERT INTO Alumno(CodAlumno, NombreCompleto, FechaNacimiento, DNI, Telefono, Correo)
@@ -37,7 +67,6 @@ namespace Dswi_Proyecto_Topico.Data
                 cmd.Parameters.AddWithValue("@CodAlumno", alumnoModel.Codigo);
                 cmd.Parameters.AddWithValue("@NombreCompleto", alumnoModel.NombreCompleto);
                 cmd.Parameters.AddWithValue("@FechaNacimiento", alumnoModel.FechaNacimiento);
-                cmd.Parameters.AddWithValue("@Edad", alumnoModel.Edad);
                 cmd.Parameters.AddWithValue("@DNI", alumnoModel.DNI);
                 cmd.Parameters.AddWithValue("@Telefono", (object)alumnoModel.Telefono ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@Correo", (object)alumnoModel.Correo ?? DBNull.Value);
@@ -48,39 +77,9 @@ namespace Dswi_Proyecto_Topico.Data
         }
 
 
-        /*
-        public async Task<AlumnoModel?> BuscarAlumnoPorCodigoAsync( string codigoAlumno)
-        {
-            var sql = "SELECT AlumnoId, CodigoAlumno, NombreCompleto, FechaNacimiento, Edad, DNI, Telefono, Correo FROM Alumno WHERE CodigoAlumno = @CodigoAlumno";
-            using (var conn = new SqlConnection(_connectionString))
-            using (var cmd = new SqlCommand(sql, conn))
-            {
-                cmd.Parameters.AddWithValue("@CodigoAlumno", codigoAlumno);
-                await conn.OpenAsync();
 
-                using (var reader = await cmd.ExecuteReaderAsync())
-                {
-                    if(await reader.ReadAsync())
-                    {
-                        return new AlumnoModel
-                        {
-                            AlumnoId= reader.GetInt32(0),
-                            CodigoAlumno = reader.GetString(1),
-                            NombreCompleto = reader.GetString(2),
-                            FechaNacimiento = reader.GetDateTime(3),
-                            Edad = reader.GetInt32(4),
-                            DNI = reader.GetString(5),
-                            Telefono = reader.IsDBNull(6) ? null : reader.GetString(6),
-                            Correo = reader.IsDBNull(7) ? null : reader.GetString(7)
-                        };
-                    }
-                    return null;
-                }
-            }
 
-        }
         
-        */
 
 }
 }
