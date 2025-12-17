@@ -8,7 +8,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Iniciar Sesión - Sistema Tópico Médico</title>
+    <title>Iniciar Sesión - Sistema CiberTópico</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
@@ -126,8 +126,8 @@
         <div class="login-card">
             <div class="login-header">
                 <i class="fas fa-hospital-alt"></i>
-                <h2>Tópico Médico</h2>
-                <p>Sistema de Gestión Médica</p>
+                <h2>CiberTópico</h2>
+                <p>Sistema de Gestión de atención Médica</p>
             </div>
 
             @if (!string.IsNullOrEmpty(ViewBag.Error))
@@ -144,7 +144,7 @@
                     </label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-user"></i></span>
-                        <input asp-for="NombreUsuario" class="form-control" placeholder="Ingrese su usuario" autofocus />
+                        <input asp-for="NombreUsuario" class="form-control" placeholder="Ingrese su nombre de usuario" autofocus />
                     </div>
                     <span asp-validation-for="NombreUsuario" class="text-danger"></span>
                 </div>
@@ -170,7 +170,7 @@
             <div class="text-center mt-4">
                 <small class="text-muted">
                     <i class="fas fa-info-circle me-1"></i>
-                    Usuario por defecto: <strong>admin</strong> / <strong>Admin123!</strong>
+                    Usuario por defecto: <strong>admin</strong> / <strong>Admin123</strong>
                 </small>
             </div>
         </div>
