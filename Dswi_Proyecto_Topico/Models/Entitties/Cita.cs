@@ -5,7 +5,7 @@ namespace Dswi_Proyecto_Topico.Models.Entitties
 {
     public class Cita
     {
-        [Key]
+      
         public int CitaId { get; set; }
 
         [Required]

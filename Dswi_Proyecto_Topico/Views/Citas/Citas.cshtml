@@ -1,0 +1,220 @@
+﻿@model IEnumerable<Dswi_Proyecto_Topico.Models.Entitties.Cita>
+
+@{
+    ViewData["Title"] = "Gestión de Citas";
+    var estadoFiltro = ViewBag.EstadoFiltro as string;
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="fas fa-calendar-alt"></i> Citas Programadas</h2>
+            <p class="text-muted">Administración y seguimiento de citas médicas</p>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Filtros y Botones -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="btn-group" role="group">
+                        <a asp-action="Citas" class="btn @(string.IsNullOrEmpty(estadoFiltro) ? "btn-primary" : "btn-outline-primary")">
+                            <i class="fas fa-list"></i> Todas
+                        </a>
+                        <a asp-action="Citas" asp-route-estado="Pendiente"
+                           class="btn @(estadoFiltro == "Pendiente" ? "btn-warning" : "btn-outline-warning")">
+                            <i class="fas fa-clock"></i> Pendientes
+                        </a>
+                        <a asp-action="Citas" asp-route-estado="Atendida"
+                           class="btn @(estadoFiltro == "Atendida" ? "btn-success" : "btn-outline-success")">
+                            <i class="fas fa-check"></i> Atendidas
+                        </a>
+                        <a asp-action="Citas" asp-route-estado="Cancelada"
+                           class="btn @(estadoFiltro == "Cancelada" ? "btn-danger" : "btn-outline-danger")">
+                            <i class="fas fa-times"></i> Canceladas
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-6 text-end">
+                    <a asp-action="RegistrarCita" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Nueva Cita
+                    </a>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumen de Citas -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h3 class="text-primary">@Model.Count()</h3>
+                    <p class="mb-0 text-muted">Total</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h3 class="text-warning">@Model.Count(c => c.EstadoCita == "Pendiente")</h3>
+                    <p class="mb-0 text-muted">Pendientes</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h3 class="text-success">@Model.Count(c => c.EstadoCita == "Atendida")</h3>
+                    <p class="mb-0 text-muted">Atendidas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h3 class="text-danger">@Model.Count(c => c.EstadoCita == "Cancelada")</h3>
+                    <p class="mb-0 text-muted">Canceladas</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Citas -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-list"></i>
+                @if (!string.IsNullOrEmpty(estadoFiltro))
+                {
+                    <span>Citas @estadoFiltro.ToLower()s</span>
+                }
+                else
+                {
+                    <span>Todas las Citas</span>
+                }
+            </h5>
+        </div>
+        <div class="card-body">
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">No hay citas registradas</h4>
+                    <p class="text-muted">Comienza registrando una nueva cita</p>
+                    <a asp-action="RegistrarCita" class="btn btn-primary mt-3">
+                        <i class="fas fa-plus"></i> Registrar Primera Cita
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th><i class="fas fa-hashtag"></i> ID</th>
+                                <th><i class="fas fa-calendar"></i> Fecha/Hora</th>
+                                <th><i class="fas fa-user"></i> Paciente</th>
+                                <th><i class="fas fa-clipboard"></i> Motivo</th>
+                                <th><i class="fas fa-info-circle"></i> Estado</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var cita in Model.OrderByDescending(c => c.FechaCita))
+                            {
+                                <tr>
+                                    <td><strong>#@cita.CitaId</strong></td>
+                                    <td>
+                                        <strong>@cita.FechaCita.ToString("dd/MM/yyyy")</strong><br>
+                                        <small class="text-muted">@cita.FechaCita.ToString("HH:mm")</small>
+                                    </td>
+                                    <td>
+                                        <strong>@cita.Paciente.NombreCompleto</strong><br>
+                                        <small class="text-muted">DNI: @cita.Paciente.DNI</small>
+                                    </td>
+                                    <td>
+                                        <small>
+                                            @if (cita.MotivoConsulta?.Length > 60)
+                                            {
+                                                @cita.MotivoConsulta.Substring(0, 60)
+
+                                                <text>...</text>
+                                            }
+                                            else
+                                            {
+                                                @cita.MotivoConsulta
+                                            }
+                                        </small>
+                                    </td>
+                                    <td>
+                                        @if (cita.EstadoCita == "Pendiente")
+                                        {
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-clock"></i> Pendiente
+                                            </span>
+                                        }
+                                        else if (cita.EstadoCita == "Atendida")
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle"></i> Atendida
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-times-circle"></i> Cancelada
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        @if (cita.EstadoCita == "Pendiente")
+                                        {
+                                            <a asp-action="AtenderCita" asp-route-id="@cita.CitaId"
+                                               class="btn btn-sm btn-primary" title="Atender Cita">
+                                                <i class="fas fa-notes-medical"></i> Atender
+                                            </a>
+                                        }
+                                        else if (cita.EstadoCita == "Atendida")
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check"></i> Completada
+                                            </span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-group .btn {
+        border-radius: 0;
+    }
+
+        .btn-group .btn:first-child {
+            border-top-left-radius: 0.25rem;
+            border-bottom-left-radius: 0.25rem;
+        }
+
+        .btn-group .btn:last-child {
+            border-top-right-radius: 0.25rem;
+            border-bottom-right-radius: 0.25rem;
+        }
+</style>
