@@ -8,6 +8,7 @@ builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
 
 builder.Services.AddScoped<AuthRepository>();
 builder.Services.AddScoped<EnfermeraRepository>();
+builder.Services.AddScoped<CitaRepository>();
 builder.Services.AddSession();
 
 var app = builder.Build();

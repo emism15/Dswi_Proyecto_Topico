@@ -1,4 +1,5 @@
 ﻿using Dswi_Proyecto_Topico.Models.Entitties;
+using Dswi_Proyecto_Topico.Models.ViewModels;
 using Microsoft.Data.SqlClient;
 
 namespace Dswi_Proyecto_Topico.Data
@@ -15,8 +16,8 @@ namespace Dswi_Proyecto_Topico.Data
         }
 
 
-        //
-        public List<Cita> ObtenerCitas(string estado = null)
+        // Listar citas con filtro 
+        public async Task<List<Cita>> ObtenerCitasAsync(string estado = null)
         {
             var lista = new List<Cita>();
 
@@ -25,19 +26,19 @@ namespace Dswi_Proyecto_Topico.Data
                 string sql = @"
         SELECT 
             c.CitaId, c.FechaCita, c.MotivoConsulta, c.EstadoCita,
-            u.UsuarioId, u.NombreCompleto, u.DNI
+            a.AlumnoId, a.NombreCompleto, a.DNI, a.Codigo
         FROM Citas c
-        INNER JOIN Usuarios u ON c.PacienteId = u.UsuarioId
+        INNER JOIN Alumno a ON c.AlumnoId = a.AlumnoId
         WHERE (@estado IS NULL OR c.EstadoCita = @estado)
         ORDER BY c.FechaCita DESC";
 
                 SqlCommand cmd = new SqlCommand(sql, cn);
                 cmd.Parameters.AddWithValue("@estado", (object)estado ?? DBNull.Value);
 
-                cn.Open();
-                SqlDataReader dr = cmd.ExecuteReader();
+                await cn.OpenAsync();
+                var dr = await cmd.ExecuteReaderAsync();
 
-                while (dr.Read())
+                while (await dr.ReadAsync())
                 {
                     lista.Add(new Cita
                     {
@@ -46,11 +47,12 @@ namespace Dswi_Proyecto_Topico.Data
                         MotivoConsulta = dr.GetString(2),
                         EstadoCita = dr.GetString(3),
 
-                        Paciente = new Usuario
+                        Alumno = new Alumno
                         {
-                            UsuarioId = dr.GetInt32(4),
+                            AlumnoId = dr.GetInt32(4),
                             NombreCompleto = dr.GetString(5),
-                            DNI = dr.GetString(6)
+                            DNI = dr.GetString(6),
+                            Codigo = dr.GetString(7)
                         }
                     });
                 }
@@ -60,11 +62,8 @@ namespace Dswi_Proyecto_Topico.Data
         }
 
 
-
-
-
-        //Listar citas con filtro
-        public List<Cita> Listar(string estado)
+        // Listar citas 
+        public async Task<List<Cita>> ListarAsync(string estado)
         {
             var lista = new List<Cita>();
 
@@ -80,15 +79,15 @@ namespace Dswi_Proyecto_Topico.Data
                 if (!string.IsNullOrEmpty(estado))
                     cmd.Parameters.AddWithValue("@estado", estado);
 
-                cn.Open();
-                SqlDataReader dr = cmd.ExecuteReader();
+                await cn.OpenAsync();
+                var dr = await cmd.ExecuteReaderAsync();
 
-                while (dr.Read())
+                while (await dr.ReadAsync())
                 {
                     lista.Add(new Cita
                     {
                         CitaId = (int)dr["CitaId"],
-                        PacienteId = (int)dr["PacienteId"],
+                        AlumnoId = (int)dr["AlumnoId"],
                         EnfermeraId = dr["EnfermeraId"] as int?,
                         FechaCita = (DateTime)dr["FechaCita"],
                         MotivoConsulta = dr["MotivoConsulta"].ToString(),
@@ -96,12 +95,13 @@ namespace Dswi_Proyecto_Topico.Data
                     });
                 }
             }
+
             return lista;
         }
 
 
-        //contadores
-        public Dictionary<string, int> Contar()
+        // Contar citas por estado
+        public async Task<Dictionary<string, int>> ContarAsync()
         {
             var dic = new Dictionary<string, int>();
 
@@ -110,11 +110,13 @@ namespace Dswi_Proyecto_Topico.Data
                 SqlCommand cmd = new SqlCommand(
                     "SELECT EstadoCita, COUNT(*) Total FROM Citas GROUP BY EstadoCita", cn);
 
-                cn.Open();
-                SqlDataReader dr = cmd.ExecuteReader();
+                await cn.OpenAsync();
+                var dr = await cmd.ExecuteReaderAsync();
 
-                while (dr.Read())
+                while (await dr.ReadAsync())
+                {
                     dic.Add(dr["EstadoCita"].ToString(), (int)dr["Total"]);
+                }
             }
 
             return dic;
@@ -122,41 +124,105 @@ namespace Dswi_Proyecto_Topico.Data
 
 
         //Registrar nueva cita
-        public void Registrar(Cita c)
+        public async Task<bool> RegistrarCitaAsync(RegistrarCitaViewModel vm)
         {
+            DateTime fechaHora = vm.Fecha.Date + vm.Hora;
+
+            if (await ExisteCruceAsync(fechaHora))
+                return false;
+
             using (SqlConnection cn = new SqlConnection(_connectionString))
             {
-                SqlCommand cmd = new SqlCommand(@"INSERT INTO Citas
-            (PacienteId, FechaCita, MotivoConsulta, Observaciones, EstadoCita)
-            VALUES (@paciente, @fecha, @motivo, @obs, 'Pendiente')", cn);
+                string sql = @"
+        INSERT INTO Citas (AlumnoId, FechaCita, MotivoConsulta, TipoCita)
+        VALUES (@alumno, @fecha, @motivo, @tipo)";
 
-                cmd.Parameters.AddWithValue("@paciente", c.PacienteId);
-                cmd.Parameters.AddWithValue("@fecha", c.FechaCita);
-                cmd.Parameters.AddWithValue("@motivo", c.MotivoConsulta);
-                cmd.Parameters.AddWithValue("@obs", c.Observaciones ?? "");
+                SqlCommand cmd = new SqlCommand(sql, cn);
+                cmd.Parameters.AddWithValue("@alumno", vm.AlumnoId);
+                cmd.Parameters.AddWithValue("@fecha", fechaHora);
+                cmd.Parameters.AddWithValue("@motivo", vm.MotivoConsulta);
+                cmd.Parameters.AddWithValue("@tipo", vm.TipoCita);
 
-                cn.Open();
-                cmd.ExecuteNonQuery();
+                await cn.OpenAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
+            return true;
         }
 
         //Cambiar estado de cita
-        public void CambiarEstado(int id, string estado)
+        public async Task CambiarEstadoAsync(int citaId, string nuevoEstado)
         {
+            string[] estadosValidos = { "Pendiente", "Atendida", "Cancelada" };
+
+            if (!estadosValidos.Contains(nuevoEstado))
+                throw new Exception("Estado inválido");
+
             using (SqlConnection cn = new SqlConnection(_connectionString))
             {
-                SqlCommand cmd = new SqlCommand(
-                    "UPDATE Citas SET EstadoCita=@estado WHERE CitaId=@id", cn);
+                string sql = @"
+        UPDATE Citas
+        SET EstadoCita = @estado
+        WHERE CitaId = @id";
 
-                cmd.Parameters.AddWithValue("@estado", estado);
-                cmd.Parameters.AddWithValue("@id", id);
+                SqlCommand cmd = new SqlCommand(sql, cn);
+                cmd.Parameters.AddWithValue("@estado", nuevoEstado);
+                cmd.Parameters.AddWithValue("@id", citaId);
 
-                cn.Open();
-                cmd.ExecuteNonQuery();
+                await cn.OpenAsync();
+                await cmd.ExecuteNonQueryAsync();
             }
         }
 
+        //Buscar alumno por DNI o código
+        public async Task<List<Alumno>> BuscarAlumnoAsync(string busqueda)
+        {
+            var lista = new List<Alumno>();
 
+            using (SqlConnection cn = new SqlConnection(_connectionString))
+            {
+                string sql = @" SELECT AlumnoId, NombreCompleto, Codigo, DNI
+                FROM Alumno
+                 WHERE DNI LIKE @b OR Codigo LIKE @b";
+
+                SqlCommand cmd = new SqlCommand(sql, cn);
+                cmd.Parameters.AddWithValue("@b", "%" + busqueda + "%");
+
+                await cn.OpenAsync();
+                var dr = await cmd.ExecuteReaderAsync();
+
+                while (await dr.ReadAsync())
+                {
+                    lista.Add(new Alumno
+                    {
+                        AlumnoId = (int)dr["AlumnoId"],
+                        NombreCompleto = dr["NombreCompleto"].ToString(),
+                        Codigo = dr["Codigo"].ToString(),
+                        DNI = dr["DNI"].ToString()
+                    });
+                }
+            }
+            return lista;
+        }
+
+        // Verificar cruce de horario
+        public async Task<bool> ExisteCruceAsync(DateTime fechaHora)
+        {
+            using (SqlConnection cn = new SqlConnection(_connectionString))
+            {
+                string sql = @" SELECT COUNT(*)  FROM Citas
+                WHERE FechaCita BETWEEN DATEADD(minute,-30,@f)
+                AND DATEADD(minute,30,@f)
+                AND EstadoCita = 'Pendiente'";
+
+                SqlCommand cmd = new SqlCommand(sql, cn);
+                cmd.Parameters.AddWithValue("@f", fechaHora);
+
+                await cn.OpenAsync();
+                int total = (int)await cmd.ExecuteScalarAsync();
+
+                return total > 0;
+            }
+        }
 
 
 

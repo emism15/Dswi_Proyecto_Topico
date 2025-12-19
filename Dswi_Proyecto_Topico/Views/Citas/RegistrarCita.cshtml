@@ -1,0 +1,69 @@
+﻿@model Dswi_Proyecto_Topico.Models.ViewModels.RegistrarCitaViewModel;
+
+<h2>Registrar Cita</h2>
+
+<form asp-action="RegistrarCita" method="post">
+
+    <!-- Buscar alumno -->
+    <div class="mb-3">
+        <label>Buscar Alumno (DNI o Código)</label>
+        <div class="input-group">
+            <input type="text" id="txtBusqueda" class="form-control" />
+            <button type="button" id="btnBuscar" class="btn btn-primary">Buscar</button>
+        </div>
+    </div>
+
+    <div id="infoAlumno" class="alert alert-info d-none"></div>
+
+    <input type="hidden" asp-for="PacienteId" />
+
+    <!-- Fecha y hora -->
+    <div class="row">
+        <div class="col-md-6">
+            <label>Fecha</label>
+            <input asp-for="Fecha" type="date" class="form-control" required />
+        </div>
+        <div class="col-md-6">
+            <label>Hora</label>
+            <input asp-for="Hora" type="time" class="form-control" required />
+        </div>
+    </div>
+
+    <!-- Tipo -->
+    <div class="mb-3 mt-3">
+        <label>Tipo de Cita</label>
+        <select asp-for="TipoCita" class="form-select" required>
+            <option value="">-- Seleccione --</option>
+            <option>Consulta</option>
+            <option>Seguimiento</option>
+            <option>Emergencia Leve</option>
+        </select>
+    </div>
+
+    <!-- Motivo -->
+    <div class="mb-3">
+        <label>Motivo</label>
+        <textarea asp-for="MotivoConsulta" class="form-control" required></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-success">Registrar Cita</button>
+</form>
+
+<script>
+    document.getElementById("btnBuscar").addEventListener("click", function () {
+        const busqueda = document.getElementById("txtBusqueda").value;
+
+        fetch(`/Citas/BuscarAlumno?busqueda=${busqueda}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data) {
+                    document.getElementById("PacienteId").value = data.usuarioId;
+                    document.getElementById("infoAlumno").classList.remove("d-none");
+                    document.getElementById("infoAlumno").innerText =
+                        data.nombreCompleto + " - DNI: " + data.dni;
+                } else {
+                    alert("Alumno no encontrado");
+                }
+            });
+    });
+</script>
