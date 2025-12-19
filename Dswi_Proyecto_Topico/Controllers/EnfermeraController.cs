@@ -1,7 +1,9 @@
 ﻿using Dswi_Proyecto_Topico.Data;
+using Dswi_Proyecto_Topico.Helpers;
 using Dswi_Proyecto_Topico.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Data.SqlClient;
 
 namespace Dswi_Proyecto_Topico.Controllers
 {
@@ -9,6 +11,7 @@ namespace Dswi_Proyecto_Topico.Controllers
     {
         private readonly AlumnoRepository alumnoRepository;
          private readonly AtencionRepository atencionRepository;
+       
 
         public EnfermeraController(AlumnoRepository alumnoRepository, AtencionRepository atencionRepository)
         {
@@ -46,7 +49,11 @@ namespace Dswi_Proyecto_Topico.Controllers
             var model = new AtencionModel
             {
                 FechaAtencion = DateTime.Now.Date,
-                HoraAtencion = DateTime.Now.TimeOfDay
+                HoraAtencion = DateTime.Now.TimeOfDay,
+
+                Medicamentos = HttpContext.Session.
+                GetObject<List<AtencionMedicamentoModel>>("MedicamentosTemp")
+                ?? new List<AtencionMedicamentoModel>()
             };
             return View(model);
         }
@@ -67,10 +74,21 @@ namespace Dswi_Proyecto_Topico.Controllers
                     ModelState.AddModelError("", "Alumno no registrado");
                     return View("RegistrarAtencion", model);
                 }
+            
+            model.AlumnoEncontrado = true;
+            model.AlumnoId = alumno.AlumnoId;
+            model.NombreCompleto = alumno.NombreCompleto;
+            model.DNI = alumno.DNI;
+            model.Telefono = alumno.Telefono;
+            model.Correo = alumno.Correo;
+
+            
+            model.Medicamentos = HttpContext.Session.GetObject<List<AtencionMedicamentoModel>>("MedicamentosTemp")
+                                ?? new List<AtencionMedicamentoModel>();
 
             ModelState.Clear();
 
-            return View("RegistrarAtencion", alumno);
+            return View("RegistrarAtencion", model);
         }
 
         
@@ -79,12 +97,17 @@ namespace Dswi_Proyecto_Topico.Controllers
 
         public async Task<IActionResult> RegistrarAtencion(AtencionModel model)
         {
-            if (!model.AlumnoEncontrado)
+            model.FechaAtencion = DateTime.Now.Date;
+            model.HoraAtencion = DateTime.Now.TimeOfDay;
+
+            if (!model.AlumnoEncontrado || model.AlumnoId == 0)
             {
                 ModelState.AddModelError("", "Debe buscar y confirmar un alumno antes de registrar la atención.");
                 return View("RegistrarAtencion", model);
             }
-            // Validaciones
+            
+
+            
             if (string.IsNullOrWhiteSpace(model.DetallesClinicos))
             {
                 ModelState.AddModelError("DetallesClinicos", "Los detalles clínicos son obligatorios");
@@ -109,12 +132,114 @@ namespace Dswi_Proyecto_Topico.Controllers
 
             }
 
-            await atencionRepository.RegistrarAtencionAsync(model);
+            if (model.FechaAtencion < new DateTime(1753, 1, 1))
+                model.FechaAtencion = DateTime.Now.Date;
+            if (model.HoraAtencion < TimeSpan.Zero || model.HoraAtencion >= TimeSpan.FromDays(1))
+                model.HoraAtencion = DateTime.Now.TimeOfDay;
 
-            TempData["MensajeExito"] = "Atención registrada correctamente.";
+            var medicamentos = HttpContext.Session.GetObject<List<AtencionMedicamentoModel>>("MedicamentosTemp") ??
+                new List<AtencionMedicamentoModel>();
+            try
+            {
+                await atencionRepository.RegistrarAtencionCompletaAsync(model, medicamentos);
+                HttpContext.Session.Remove("MedicamentosTemp");
 
-            return RedirectToAction("RegistrarAtencion");
+                TempData["MensajeExito"] = "Atención registrada correctamente.";
+                return RedirectToAction(nameof(RegistrarAtencion));
+            }
+
+            catch (SqlException e)
+            {
+                ModelState.AddModelError("", e.Message);
+                return View("RegistrarAtencion", model);
+            }
+
+            
         }
         
+        [HttpGet]
+        public async Task<IActionResult> BuscarMedicamentos (string filtro)
+        {
+            var lista = await atencionRepository.BuscarMedicamentoAsync(filtro ?? "");
+            return PartialView("_ListaMedicamentos", lista);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AgregarMedicamento(int medicamentoId, string nombre, int cantidad, int stock)
+        {
+            if(cantidad <=0 || cantidad > stock)
+            {
+                return BadRequest("Stock insuficiente");
+            }
+            var lista = HttpContext.Session.
+                GetObject<List<AtencionMedicamentoModel>>("MedicamentosTemp")
+                ?? new List<AtencionMedicamentoModel>();
+
+            var existente = lista.FirstOrDefault(x => x.MedicamentoId == medicamentoId);
+            
+
+            if(existente != null)
+            {
+                if (existente.Cantidad + cantidad > stock)
+                    return BadRequest("Stock insuficiente");
+                existente.Cantidad += cantidad;
+            }
+
+            else
+            {
+                lista.Add(new AtencionMedicamentoModel
+               {
+                    MedicamentoId = medicamentoId,
+                    Nombre = nombre,
+                    Cantidad = cantidad,
+                    StockDisponible = stock
+
+                });
+            }
+
+            HttpContext.Session.SetObject("MedicamentosTemp", lista);
+            return PartialView("_TablaMedicamentosSeleccionados", lista);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditarCantidad(int medicamentoId, int nuevaCantidad)
+        {
+            var lista = HttpContext.Session.
+               GetObject<List<AtencionMedicamentoModel>>("MedicamentosTemp");
+
+            if (lista == null)
+                return BadRequest();
+
+            var item = lista.FirstOrDefault(x => x.MedicamentoId == medicamentoId);
+            if (item == null) 
+
+            if (nuevaCantidad <= 0 || nuevaCantidad > item.StockDisponible)
+                return BadRequest("Cantidad invalida");
+            item.Cantidad = nuevaCantidad;
+
+            HttpContext.Session.SetObject("MedicamentosTemp", lista);
+            return PartialView("_TablaMedicamentosSeleccionados", lista);
+        }
+
+        
+        [HttpPost]
+        public async Task<IActionResult> EliminarMedicamento(int medicamentoId)
+        {
+            var lista = HttpContext.Session.
+                GetObject<List<AtencionMedicamentoModel>>("MedicamentosTemp");
+
+            if (lista == null)
+                return BadRequest();
+
+            lista.RemoveAll(m => m.MedicamentoId == medicamentoId);
+
+            HttpContext.Session.SetObject("MedicamentosTemp", lista);
+            return PartialView("_TablaMedicamentosSeleccionados", lista);
+        }
+
+
+        
+
+
     }
 }

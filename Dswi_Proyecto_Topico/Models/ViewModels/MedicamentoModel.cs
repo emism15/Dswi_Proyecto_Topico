@@ -5,12 +5,9 @@ namespace Dswi_Proyecto_Topico.Models.ViewModels
     public class MedicamentoModel
     {
         public int MedicamentoId { get; set; }
-
-        [Required(ErrorMessage = "El nombre del medicamento es obligatorio")]
-        public string Nombre { get; set; }
+        public string Nombre { get; set; } = string.Empty;
         public int Stock { get; set; }
-
-        public string Unidad { get; set; }
-        public string Descripcion { get; set; }
+        public bool Estado { get; set; }
+        
     }
 }

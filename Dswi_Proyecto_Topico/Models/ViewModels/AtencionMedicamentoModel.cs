@@ -2,10 +2,10 @@
 {
     public class AtencionMedicamentoModel
     {
-        public int AtencionMedicamentoId { get; set; }
-        public int AtencionId { get; set; }
         public int MedicamentoId { get; set; }
+        public string Nombre { get; set; } = string.Empty;
+        public int StockDisponible { get; set; }
         public int Cantidad { get; set; }
-        public MedicamentoModel Medicamento { get; set; }
+        
     }
 }

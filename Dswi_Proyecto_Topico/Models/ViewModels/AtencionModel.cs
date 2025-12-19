@@ -23,9 +23,7 @@ namespace Dswi_Proyecto_Topico.Models.ViewModels
         
         public string DiagnosticoPreliminar { get; set; } = string.Empty;
 
-
-
-
-
+        public List<AtencionMedicamentoModel> Medicamentos { get; set; }
+        = new ();
     }
 }
