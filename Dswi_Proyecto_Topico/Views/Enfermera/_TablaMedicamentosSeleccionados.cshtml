@@ -1,0 +1,42 @@
+﻿@model List<Dswi_Proyecto_Topico.Models.ViewModels.AtencionMedicamentoModel>
+
+<table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Medicamento</th>
+                        <th class="text-center" style="width:140px">Cantidad</th>
+                        <th class="text-center" style="width:140px">Acción</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if(Model.Any())
+                    {
+                        @foreach(var item in Model)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@item.Nombre</td>
+                                <td class="text-center">
+                                    <input type="number" class="form-control form-control-sm mx-auto text-center"
+                                    style="width:90px" value="@item.Cantidad" min="1" max="@item.StockDisponible"
+                                    onchange="editarCantidad(@item.MedicamentoId, this.value)" />
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="eliminarMedicamento(@item.MedicamentoId)">
+                                        <i class="bi bi-trash me-1"></i>
+                                        Eliminar
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="3" class="text-center text-muted py-4">
+                                No hay medicamentos agregados.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>

@@ -1,0 +1,118 @@
+﻿@model Dswi_Proyecto_Topico.Models.ViewModels.AlumnoModel;
+@{
+    ViewData["Title"] = "Registrar Alumno";
+}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                     <div class="card-header bg-success text-white">Registrar Alumno</div>
+                <div class="card-body">
+                    @if (TempData["Mensaje"] != null)
+                    {
+                        <div class="alert alert-success">
+                            @TempData["Mensaje"]
+                        </div>
+                    }
+                    
+                    <form asp-action="RegistrarAlumno" method="post" novalidate>
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="Codigo" class="form-label"></label>
+                                <input asp-for="Codigo" class="form-control" maxlength="10"
+                                       oninput="this.value = this.value.replace(/[^i0-9]/g, '')"
+                                       placeholder="Ingrese Código del Alumno"/>
+                                <span asp-validation-for="Codigo" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="DNI" class="form-label"></label>
+                                <input asp-for="DNI" class="form-control" maxlength="8"
+                                       inputmode="numeric"
+                                       oninput="this.value = this.value.replace(/\D/g, '')"
+                                       placeholder="Ingrese DNI del Alumno" />
+                                <span asp-validation-for="DNI" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="NombreCompleto" class="form-label"></label>
+                            <input asp-for="NombreCompleto" class="form-control" oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
+                                   placeholder="Ingrese nombre y apellido" />
+                            <span asp-validation-for="NombreCompleto" class="text-danger"></span>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="FechaNacimiento" class="form-label"></label>
+                                <input asp-for="FechaNacimiento" type="date" class="form-control" />
+                                <span asp-validation-for="FechaNacimiento" class="text-danger"></span>
+                            </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">Edad</label>
+                                <input id="Edad" class="form-control" value="@Model?.Edad" readonly />
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="Telefono" class="form-label"></label>
+                                <input asp-for="Telefono" class="form-control" maxlength="9"
+                                       inputmode="numeric"
+                                       oninput="this.value = this.value.replace(/\D/g, '')"
+                                       placeholder="Ingrese número telefónico" />
+                                <span asp-validation-for="Telefono" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Correo" class="form-label"></label>
+                                <input asp-for="Correo" class="form-control" placeholder="correo@ejemplo.com" />
+                                <span asp-validation-for="Correo" class="text-danger"></span>
+                            </div>
+
+                        </div>
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="submit" class="btn btn-outline-success btn-hoverr">Guardar</button>
+                            <a asp-action="RegistrarAtencion" class="btn btn-outline-secondary btn-hover"> Volver</a>
+                        </div>
+
+
+                    </form>
+
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // calcula la edad a partir de la fecha de nacimiento
+        function calcularEdad(fechaNacimiento) {
+            if (!fechaNacimiento) return '';
+            const hoy = new Date();
+            const nacimiento = new Date(fechaNacimiento);
+            if (isNaN(nacimiento)) return ''; 
+            let edad = hoy.getFullYear() - nacimiento.getFullYear();
+            const m = hoy.getMonth() - nacimiento.getMonth();
+            if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) {
+                edad--;
+            }
+            return edad;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const fechaInput = document.querySelector('input[name="FechaNacimiento"]');
+            const edadInput = document.getElementById('Edad');
+
+            //actualiza cuando la fecha cambia
+            fechaInput.addEventListener('input', () => {
+                edadInput.value = calcularEdad(fechaInput.value);
+            });
+        });
+    </script>
+}

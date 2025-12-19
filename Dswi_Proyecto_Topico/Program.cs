@@ -6,6 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
 
 
+builder.Services.AddScoped<AlumnoRepository>();
+builder.Services.AddScoped<AtencionRepository>();
 builder.Services.AddScoped<AuthRepository>();
 builder.Services.AddScoped<EnfermeraRepository>();
 builder.Services.AddSession();
