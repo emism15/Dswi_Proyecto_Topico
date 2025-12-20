@@ -1,0 +1,223 @@
+﻿@model List<TopicoMedico.Models.Entities.Alerta>
+@{
+    ViewData["Title"] = "Alertas del Sistema";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-bell me-2"></i>Alertas del Sistema</h2>
+    <div>
+        <span class="badge bg-danger fs-6">
+            <i class="fas fa-exclamation-triangle me-1"></i>
+            @Model.Count(a => !a.Leida) No Leídas
+        </span>
+    </div>
+</div>
+
+<!-- Resumen de Alertas -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-danger">
+            <div class="card-body text-center">
+                <h6 class="text-danger">
+                    <i class="fas fa-exclamation-circle"></i> Críticas
+                </h6>
+                <h2 class="mb-0">@Model.Count(a => a.Prioridad == "Crítica" && !a.Leida)</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-warning">
+            <div class="card-body text-center">
+                <h6 class="text-warning">
+                    <i class="fas fa-exclamation-triangle"></i> Altas
+                </h6>
+                <h2 class="mb-0">@Model.Count(a => a.Prioridad == "Alta" && !a.Leida)</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-info">
+            <div class="card-body text-center">
+                <h6 class="text-info">
+                    <i class="fas fa-info-circle"></i> Medias
+                </h6>
+                <h2 class="mb-0">@Model.Count(a => a.Prioridad == "Media" && !a.Leida)</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-secondary">
+            <div class="card-body text-center">
+                <h6 class="text-secondary">
+                    <i class="fas fa-check-circle"></i> Leídas
+                </h6>
+                <h2 class="mb-0">@Model.Count(a => a.Leida)</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3">
+                <select id="filtroTipo" class="form-select">
+                    <option value="">Todos los Tipos</option>
+                    <option value="StockBajo">Stock Bajo</option>
+                    <option value="ProductoVencido">Producto Vencido</option>
+                    <option value="CitaProxima">Cita Próxima</option>
+                    <option value="CitaHoy">Cita Hoy</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select id="filtroPrioridad" class="form-select">
+                    <option value="">Todas las Prioridades</option>
+                    <option value="Crítica">Crítica</option>
+                    <option value="Alta">Alta</option>
+                    <option value="Media">Media</option>
+                    <option value="Baja">Baja</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select id="filtroEstado" class="form-select">
+                    <option value="">Todas</option>
+                    <option value="noLeida" selected>No Leídas</option>
+                    <option value="leida">Leídas</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lista de Alertas -->
+<div class="card">
+    <div class="card-body">
+        @if (Model != null && Model.Any())
+        {
+            <div class="list-group" id="listaAlertas">
+                @foreach (var alerta in Model.OrderByDescending(a => a.FechaGeneracion))
+                {
+                    var prioridadClass = alerta.Prioridad switch
+                    {
+                        "Crítica" => "danger",
+                        "Alta" => "warning",
+                        "Media" => "info",
+                        _ => "secondary"
+                    };
+
+                    var iconoTipo = alerta.TipoAlerta switch
+                    {
+                        "StockBajo" => "fa-box",
+                        "ProductoVencido" => "fa-calendar-times",
+                        "CitaProxima" => "fa-clock",
+                        "CitaHoy" => "fa-calendar-check",
+                        _ => "fa-bell"
+                    };
+
+                    <div class="list-group-item @(alerta.Leida ? "bg-light" : "") alerta-item"
+                         data-tipo="@alerta.TipoAlerta"
+                         data-prioridad="@alerta.Prioridad"
+                         data-leida="@(alerta.Leida ? "leida" : "noLeida")">
+                        <div class="d-flex w-100 justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas @iconoTipo text-@prioridadClass me-2"></i>
+                                    <span class="badge bg-@prioridadClass me-2">@alerta.Prioridad</span>
+                                    <span class="badge bg-secondary">@alerta.TipoAlerta</span>
+                                    @if (alerta.Leida)
+                                    {
+                                        <span class="badge bg-success ms-2">
+                                            <i class="fas fa-check"></i> Leída
+                                        </span>
+                                    }
+                                </div>
+                                <h6 class="mb-1 @(alerta.Leida ? "text-muted" : "")">
+                                    @alerta.Mensaje
+                                </h6>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    @alerta.FechaGeneracion.ToString("dd/MM/yyyy HH:mm")
+                                    @if (alerta.Leida && alerta.FechaLectura.HasValue)
+                                    {
+                                        <span class="ms-2">
+                                            - Leída el @alerta.FechaLectura.Value.ToString("dd/MM/yyyy HH:mm")
+                                        </span>
+                                    }
+                                </small>
+                            </div>
+                            <div class="ms-3">
+                                @if (!alerta.Leida)
+                                {
+                                    <form asp-action="MarcarAlertaLeida" asp-route-id="@alerta.AlertaId" method="post" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Marcar como leída">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
+                                }
+                                @if (alerta.ReferenciaId.HasValue && alerta.TipoReferencia == "Producto")
+                                {
+                                    <a href="@Url.Action("EditarProducto", new { id = alerta.ReferenciaId })"
+                                       class="btn btn-sm btn-outline-primary"
+                                       title="Ver producto">
+                                        <i class="fas fa-external-link-alt"></i>
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                <h4>No hay alertas</h4>
+                <p class="text-muted">Todo está bajo control</p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Filtros
+            function filtrarAlertas() {
+                const tipo = $('#filtroTipo').val();
+                const prioridad = $('#filtroPrioridad').val();
+                const estado = $('#filtroEstado').val();
+
+                $('.alerta-item').each(function() {
+                    const $item = $(this);
+                    let mostrar = true;
+
+                    if (tipo && $item.data('tipo') !== tipo) {
+                        mostrar = false;
+                    }
+
+                    if (prioridad && $item.data('prioridad') !== prioridad) {
+                        mostrar = false;
+                    }
+
+                    if (estado && $item.data('leida') !== estado) {
+                        mostrar = false;
+                    }
+
+                    if (mostrar) {
+                        $item.show();
+                    } else {
+                        $item.hide();
+                    }
+                });
+            }
+
+            $('#filtroTipo, #filtroPrioridad, #filtroEstado').change(filtrarAlertas);
+
+            // Aplicar filtro inicial (solo no leídas)
+            filtrarAlertas();
+        });
+    </script>
+}

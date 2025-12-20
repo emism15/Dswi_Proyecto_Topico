@@ -1,0 +1,132 @@
+﻿@model List<TopicoMedico.Models.Entities.Usuario>
+@{
+    ViewData["Title"] = "Gestión de Usuarios";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-users me-2"></i>Gestión de Usuarios</h2>
+    <a href="@Url.Action("CrearUsuario")" class="btn btn-primary">
+        <i class="fas fa-user-plus me-2"></i>Nuevo Usuario
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>DNI</th>
+                        <th>Nombre Completo</th>
+                        <th>Usuario</th>
+                        <th>Rol</th>
+                        <th>Email</th>
+                        <th>Teléfono</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var usuario in Model)
+                        {
+                            <tr>
+                                <td>@usuario.DNI</td>
+                                <td>
+                                    <strong>@usuario.NombreCompleto</strong>
+                                </td>
+                                <td>@usuario.NombreUsuario</td>
+                                <td>
+                                    <span class="badge @(usuario.Rol.NombreRol == "Administrador" ? "bg-danger" : usuario.Rol.NombreRol == "Enfermera" ? "bg-info" : "bg-success")">
+                                        @usuario.Rol.NombreRol
+                                    </span>
+                                </td>
+                                <td>@usuario.Email</td>
+                                <td>@usuario.Telefono</td>
+                                <td class="text-center">
+                                    @if (usuario.Activo)
+                                    {
+                                        <span class="badge bg-success"><i class="fas fa-check"></i> Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary"><i class="fas fa-times"></i> Inactivo</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="@Url.Action("EditarUsuario", new { id = usuario.UsuarioId })" class="btn btn-outline-primary" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        @if (usuario.UsuarioId != 1)
+                                        {
+                                            <button type="button" class="btn btn-outline-danger" onclick="confirmarEliminar(@usuario.UsuarioId, '@usuario.NombreCompleto')" title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">
+                                <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                                No hay usuarios registrados
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación -->
+<div class="modal fade" id="modalEliminar" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Está seguro de eliminar al usuario <strong id="nombreUsuario"></strong>?</p>
+                <p class="text-muted mb-0">Esta acción desactivará al usuario en el sistema.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="formEliminar" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Eliminar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Token antiforgery que se agregará dinámicamente
+        const antiforgeryToken = '@Html.AntiForgeryToken()';
+
+        function confirmarEliminar(id, nombre) {
+            document.getElementById('nombreUsuario').textContent = nombre;
+            const form = document.getElementById('formEliminar');
+            form.action = '/Admin/EliminarUsuario/' + id;
+
+            // Agregar token antiforgery si no existe
+            if (!form.querySelector('input[name="__RequestVerificationToken"]')) {
+                const tokenDiv = document.createElement('div');
+                tokenDiv.innerHTML = antiforgeryToken;
+                form.insertBefore(tokenDiv.firstChild, form.firstChild);
+            }
+
+            new bootstrap.Modal(document.getElementById('modalEliminar')).show();
+        }
+    </script>
+}

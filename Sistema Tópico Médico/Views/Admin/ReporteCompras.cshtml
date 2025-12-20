@@ -1,0 +1,184 @@
+﻿@model TopicoMedico.Models.ViewModels.ReporteComprasViewModel
+@{
+    ViewData["Title"] = "Reporte de Compras";
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0"><i class="fas fa-chart-line me-2"></i>Reporte de Compras</h4>
+            </div>
+            <div class="card-body">
+
+                <!-- Filtros -->
+                <form asp-action="ReporteCompras" method="post">
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <label asp-for="FechaInicio" class="form-label"></label>
+                            <input asp-for="FechaInicio" type="date" class="form-control" />
+                        </div>
+
+                        <div class="col-md-3">
+                            <label asp-for="FechaFin" class="form-label"></label>
+                            <input asp-for="FechaFin" type="date" class="form-control" />
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="ProveedorId" class="form-label"></label>
+                            <select asp-for="ProveedorId" class="form-select" asp-items="@(new SelectList(Model.Proveedores, "ProveedorId", "NombreProveedor"))">
+                                <option value="">-- Todos los Proveedores --</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="fas fa-search me-2"></i>Generar
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                @if (Model.Compras != null && Model.Compras.Any())
+                {
+                    <!-- Resumen -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card border-primary">
+                                <div class="card-body text-center">
+                                    <h6 class="text-primary">Total Compras</h6>
+                                    <h2 class="mb-0">@Model.Compras.Count</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-success">
+                                <div class="card-body text-center">
+                                    <h6 class="text-success">Monto Total</h6>
+                                    <h2 class="mb-0 text-success">@Model.MontoTotal.ToString("C2")</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-info">
+                                <div class="card-body text-center">
+                                    <h6 class="text-info">Promedio por Compra</h6>
+                                    <h2 class="mb-0 text-info">@((Model.MontoTotal / Model.Compras.Count).ToString("C2"))</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de Resultados -->
+                    <div class="table-responsive">
+                        <table class="table table-hover table-bordered" id="tablaReporte">
+                            <thead class="table-success">
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>N° Comprobante</th>
+                                    <th>Tipo</th>
+                                    <th>Proveedor</th>
+                                    <th>Monto</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var compra in Model.Compras)
+                                {
+                                    <tr>
+                                        <td>@compra.FechaCompra.ToString("dd/MM/yyyy")</td>
+                                        <td>@compra.NumeroComprobante</td>
+                                        <td>
+                                            <span class="badge @(compra.TipoComprobante == "Factura" ? "bg-primary" : "bg-info")">
+                                                @compra.TipoComprobante
+                                            </span>
+                                        </td>
+                                        <td>@compra.Proveedor.NombreProveedor</td>
+                                        <td class="fw-bold text-success">@compra.MontoTotal.ToString("C2")</td>
+                                        <td>
+                                            @if (compra.Estado == "Completada")
+                                            {
+                                                <span class="badge bg-success">Completada</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning">@compra.Estado</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <a href="@Url.Action("DetalleCompra", new { id = compra.CompraId })"
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-light fw-bold">
+                                    <td colspan="4" class="text-end">TOTAL:</td>
+                                    <td class="text-success fs-5">@Model.MontoTotal.ToString("C2")</td>
+                                    <td colspan="2"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <!-- Botones de Exportación -->
+                    <div class="d-flex justify-content-end gap-2 mt-3">
+                        <button onclick="exportarExcel()" class="btn btn-success">
+                            <i class="fas fa-file-excel me-2"></i>Exportar a Excel
+                        </button>
+                        <button onclick="window.print()" class="btn btn-primary">
+                            <i class="fas fa-print me-2"></i>Imprimir
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info text-center">
+                        <i class="fas fa-info-circle fa-3x mb-3 d-block"></i>
+                        <h5>No hay resultados</h5>
+                        <p class="mb-0">Seleccione un rango de fechas y genere el reporte</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            @if (Model.Compras != null && Model.Compras.Any())
+            {
+                    <text>
+                    $('#tablaReporte').DataTable({
+                        language: {
+                            url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+                        },
+                        order: [[0, 'desc']]
+                    });
+                    </text>
+            }
+        });
+
+             function exportarExcel() {
+            const tabla = document.getElementById('tablaReporte');
+            const wb = XLSX.utils.table_to_book(tabla, {sheet: "Reporte"});
+            const fecha = '@DateTime.Now.ToString("yyyyMMdd")';
+            XLSX.writeFile(wb, 'ReporteCompras_' + fecha + '.xlsx');
+        }
+    </script>
+
+    <style>
+        @@media print {
+            .btn, .card-header, form {
+                display: none !important;
+            }
+        }
+    </style>
+}

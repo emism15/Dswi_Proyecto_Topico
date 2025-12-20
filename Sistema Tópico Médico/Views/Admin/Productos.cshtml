@@ -1,0 +1,275 @@
+﻿@model List<Producto>
+@{
+    ViewData["Title"] = "Gestión de Productos";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-boxes me-2"></i>Gestión de Productos</h2>
+    <a href="@Url.Action("CrearProducto")" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i>Nuevo Producto
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover" id="tablaProductos">
+                <thead class="table-light">
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Tipo</th>
+                        <th>Categoría</th>
+                        <th>Stock Actual</th>
+                        <th>Stock Mínimo</th>
+                        <th>Precio</th>
+                        <th>Vencimiento</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var producto in Model)
+                        {
+                            var stockBajo = producto.StockActual <= producto.StockMinimo;
+                            var porVencer = producto.FechaVencimiento.HasValue &&
+                            producto.FechaVencimiento.Value <= DateTime.Now.AddDays(30);
+
+                            <tr class="@(stockBajo ? "table-warning" : "") @(porVencer ? "table-danger" : "")">
+                                <td>
+                                    <strong>@producto.CodigoProducto</strong>
+                                    @if (stockBajo)
+                                    {
+                                        <span class="badge bg-warning text-dark ms-1" title="Stock bajo">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                        </span>
+                                    }
+                                </td>
+                                <td>@producto.NombreProducto</td>
+                                <td>
+                                    <span class="badge @(producto.TipoProducto == "Medicamento" ? "bg-info" : "bg-secondary")">
+                                        @producto.TipoProducto
+                                    </span>
+                                </td>
+                                <td>@producto.Categoria?.NombreCategoria</td>
+                                <td>
+                                    <span class="@(stockBajo ? "fw-bold text-danger" : "")">
+                                        @producto.StockActual @producto.UnidadMedida
+                                    </span>
+                                </td>
+                                <td>@producto.StockMinimo</td>
+                                <td>@producto.PrecioUnitario.ToString("C2")</td>
+                                <td>
+                                    @if (producto.FechaVencimiento.HasValue)
+                                    {
+                                        <span class="@(porVencer ? "text-danger fw-bold" : "")">
+                                            @producto.FechaVencimiento.Value.ToString("dd/MM/yyyy")
+                                        </span>
+                                        @if (porVencer)
+                                        {
+                                            <br />
+                                            <small class="text-danger">
+                                                <i class="fas fa-clock"></i> Por vencer
+                                            </small>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">N/A</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    @if (producto.Activo)
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check"></i> Activo
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-times"></i> Inactivo
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="@Url.Action("EditarProducto", new { id = producto.ProductoId })"
+                                           class="btn btn-outline-primary"
+                                           title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button"
+                                                class="btn btn-outline-info"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#detalleModal@(producto.ProductoId)"
+                                                title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="10" class="text-center text-muted py-4">
+                                <i class="fas fa-box-open fa-3x mb-3 d-block"></i>
+                                No hay productos registrados
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- MODALES FUERA DE LA TABLA -->
+@if (Model != null && Model.Any())
+{
+    @foreach (var producto in Model)
+    {
+        <div class="modal fade" id="detalleModal@(producto.ProductoId)" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-box me-2"></i>Detalles del Producto
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <dl class="row">
+                            <dt class="col-sm-4">Código:</dt>
+                            <dd class="col-sm-8">@producto.CodigoProducto</dd>
+
+                            <dt class="col-sm-4">Nombre:</dt>
+                            <dd class="col-sm-8">@producto.NombreProducto</dd>
+
+                            <dt class="col-sm-4">Descripción:</dt>
+                            <dd class="col-sm-8">@producto.Descripcion</dd>
+
+                            <dt class="col-sm-4">Laboratorio:</dt>
+                            <dd class="col-sm-8">@(producto.Laboratorio ?? "N/A")</dd>
+
+                            <dt class="col-sm-4">Lote:</dt>
+                            <dd class="col-sm-8">@(producto.Lote ?? "N/A")</dd>
+
+                            <dt class="col-sm-4">Requiere Receta:</dt>
+                            <dd class="col-sm-8">
+                                @if (producto.RequiereReceta)
+                                {
+                                    <span class="badge bg-warning">Sí</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">No</span>
+                                }
+                            </dd>
+
+                            <dt class="col-sm-4">Fecha Registro:</dt>
+                            <dd class="col-sm-8">@producto.FechaRegistro.ToString("dd/MM/yyyy")</dd>
+                        </dl>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+<div class="row mt-3">
+    <div class="col-md-4">
+        <div class="card border-warning">
+            <div class="card-body">
+                <h6 class="card-title text-warning">
+                    <i class="fas fa-exclamation-triangle"></i> Stock Bajo
+                </h6>
+                <p class="card-text display-6">
+                    @Model.Count(p => p.StockActual <= p.StockMinimo)
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-danger">
+            <div class="card-body">
+                <h6 class="card-title text-danger">
+                    <i class="fas fa-calendar-times"></i> Por Vencer (30 días)
+                </h6>
+                <p class="card-text display-6">
+                    @Model.Count(p => p.FechaVencimiento.HasValue && p.FechaVencimiento.Value <= DateTime.Now.AddDays(30))
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-success">
+            <div class="card-body">
+                <h6 class="card-title text-success">
+                    <i class="fas fa-check-circle"></i> Total Productos
+                </h6>
+                <p class="card-text display-6">
+                    @Model.Count(p => p.Activo)
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- DataTables CDN -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Debug: Contar columnas
+            var thCount = $('#tablaProductos thead tr th').length;
+            var tdCount = $('#tablaProductos tbody tr:first td').length;
+
+            console.log('Columnas en thead:', thCount);
+            console.log('Columnas en tbody (primera fila):', tdCount);
+
+            // Solo inicializar DataTables si hay datos
+            if ($('#tablaProductos tbody tr td').attr('colspan') === undefined) {
+                $('#tablaProductos').DataTable({
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+                    },
+                    order: [[1, 'asc']], // Ordenar por nombre
+                    pageLength: 25,
+                    columnDefs: [
+                        { orderable: false, targets: -1 } // Deshabilitar orden en columna Acciones
+                    ]
+                });
+                console.log('DataTables inicializado correctamente');
+            } else {
+                console.log('Tabla vacía - DataTables no inicializado');
+            }
+        });
+    </script>
+}

@@ -1,0 +1,298 @@
+﻿@model TopicoMedico.Models.ViewModels.CompraViewModel
+@{
+    ViewData["Title"] = "Registrar Compra";
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-cart-plus me-2"></i>Registrar Nueva Compra</h4>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="CrearCompra" method="post" id="formCompra">
+
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <label asp-for="NumeroComprobante" class="form-label"></label>
+                            <input asp-for="NumeroComprobante" class="form-control" placeholder="Ej: F001-00001" />
+                            <span asp-validation-for="NumeroComprobante" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label asp-for="TipoComprobante" class="form-label"></label>
+                            <select asp-for="TipoComprobante" class="form-select">
+                                <option value="">-- Seleccione --</option>
+                                <option value="Factura">Factura</option>
+                                <option value="Boleta">Boleta</option>
+                                <option value="Guía">Guía de Remisión</option>
+                            </select>
+                            <span asp-validation-for="TipoComprobante" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label asp-for="ProveedorId" class="form-label"></label>
+                            <select asp-for="ProveedorId" class="form-select" asp-items="@(new SelectList(Model.ProveedoresDisponibles, "ProveedorId", "NombreProveedor"))">
+                                <option value="">-- Seleccione Proveedor --</option>
+                            </select>
+                            <span asp-validation-for="ProveedorId" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label asp-for="FechaCompra" class="form-label"></label>
+                            <input asp-for="FechaCompra" type="date" class="form-control" />
+                            <span asp-validation-for="FechaCompra" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <h5 class="mb-3"><i class="fas fa-list me-2"></i>Detalle de Productos</h5>
+
+                    <div class="row mb-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label">Producto</label>
+                            <select id="productoSelect" class="form-select">
+                                <option value="">-- Seleccione un Producto --</option>
+                                @foreach (var producto in Model.ProductosDisponibles)
+                                {
+                                    <option value="@producto.ProductoId"
+                                            data-nombre="@producto.NombreProducto"
+                                            data-precio="@producto.PrecioUnitario"
+                                            data-lote="@producto.Lote"
+                                            data-fecha-venc="@producto.FechaVencimiento?.ToString("yyyy-MM-dd")">
+                                        @producto.CodigoProducto - @producto.NombreProducto
+                                    </option>
+
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label">Cantidad</label>
+                            <input type="number" id="cantidadInput" class="form-control" min="1" value="1" />
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label">Precio Unit.</label>
+                            <input type="number" id="precioInput" class="form-control" step="0.01" min="0" placeholder="0.00" />
+                        </div>
+                        <div class="col-md-1">
+                            <button type="button" class="btn btn-success w-100" onclick="agregarProducto()">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="tablaDetalles">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="35%">Producto</th>
+                                    <th width="15%">Cantidad</th>
+                                    <th width="15%">Precio Unit.</th>
+                                    <th width="15%">Fecha Venc.</th>
+                                    <th width="10%">Subtotal</th>
+                                    <th width="10%">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detallesBody">
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">
+                                        No hay productos agregados. Agregue al menos uno.
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-light fw-bold">
+                                    <td colspan="4" class="text-end">TOTAL:</td>
+                                    <td id="montoTotalDisplay">S/ 0.00</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div id="detallesContainer"></div>
+                    <input type="hidden" asp-for="MontoTotal" id="montoTotalInput" />
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="@Url.Action("Compras")" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary" id="btnGuardar">
+                            <i class="fas fa-save me-2"></i>Registrar Compra
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+   @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        let detalles = [];
+        let contadorDetalle = 0;
+
+        // --- Eventos ---
+        
+        // Actualizar precio cuando se selecciona un producto
+        $('#productoSelect').change(function() {
+            const precio = $(this).find(':selected').data('precio');
+            // Usamos .toFixed(2) para asegurar el formato decimal
+            $('#precioInput').val(precio ? parseFloat(precio).toFixed(2) : ''); 
+        });
+
+        // --- Funciones de Detalle ---
+        
+        function agregarProducto() {
+            const $productoSelect = $('#productoSelect');
+            const productoId = $productoSelect.val();
+            const productoNombre = $productoSelect.find(':selected').data('nombre');
+            const cantidad = parseInt($('#cantidadInput').val());
+            const precio = parseFloat($('#precioInput').val());
+            const fechaVenc = $productoSelect.find(':selected').data('fecha-venc');
+            const lote = $productoSelect.find(':selected').data('lote');
+
+
+            // Validaciones
+            if (!productoId) {
+                alert('Debe seleccionar un producto.');
+                return;
+            }
+            if (!cantidad || isNaN(cantidad) || cantidad <= 0) {
+                alert('La cantidad debe ser un número positivo.');
+                return;
+            }
+            if (!precio || isNaN(precio) || precio <= 0) {
+                alert('El precio unitario debe ser un número positivo.');
+                return;
+            }
+
+            const subtotal = cantidad * precio;
+
+            const detalle = {
+                index: contadorDetalle++,
+                ProductoId: parseInt(productoId), // Asegurar que es un número
+                ProductoNombre: productoNombre,
+                Cantidad: cantidad,
+                PrecioUnitario: precio,
+                Subtotal: subtotal,
+                FechaVencimiento: fechaVenc,
+                Lote: lote 
+            };
+
+            detalles.push(detalle);
+            actualizarTabla();
+            limpiarFormulario();
+        }
+
+        function eliminarDetalle(index) {
+            detalles = detalles.filter(d => d.index !== index);
+            actualizarTabla();
+        }
+
+        function actualizarTabla() {
+            const tbody = $('#detallesBody');
+            tbody.empty();
+            let total = 0;
+
+            if (detalles.length === 0) {
+                tbody.append(`
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">
+                            No hay productos agregados. Agregue al menos uno.
+                        </td>
+                    </tr>
+                `);
+            } else {
+                detalles.forEach(detalle => {
+                    total += detalle.Subtotal;
+                    
+                    // Formato de fecha para la tabla
+                    const fechaVencimientoDisplay = detalle.FechaVencimiento 
+                        ? new Date(detalle.FechaVencimiento + 'T00:00:00').toLocaleDateString() 
+                        : 'N/A';
+                    
+                    tbody.append(`
+                        <tr>
+                            <td>
+                                <strong>${detalle.ProductoNombre}</strong><br>
+                                <small class="text-muted">Lote: ${detalle.Lote || 'N/A'}</small>
+                            </td>
+                            <td>${detalle.Cantidad}</td>
+                            <td>S/ ${detalle.PrecioUnitario.toFixed(2)}</td>
+                            <td>${fechaVencimientoDisplay}</td>
+                            <td class="fw-bold">S/ ${detalle.Subtotal.toFixed(2)}</td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-danger" onclick="eliminarDetalle(${detalle.index})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `);
+                });
+            }
+
+            // Actualizar el display y el input oculto para el MontoTotal
+            $('#montoTotalDisplay').text('S/ ' + total.toFixed(2));
+            $('#montoTotalInput').val(total.toFixed(2));
+            
+            // ❗ CLAVE: Actualizar campos ocultos DESPUÉS de calcular el total
+            actualizarCamposOcultos();
+        }
+
+        function actualizarCamposOcultos() {
+            const container = $('#detallesContainer');
+            container.empty();
+
+            detalles.forEach((detalle, index) => {
+                // Generar los campos ocultos para el Model Binder de ASP.NET Core
+                // El formato de nombre es crucial: Detalles[i].Propiedad
+                container.append(`
+                    <input type="hidden" name="Detalles[${index}].ProductoId" value="${detalle.ProductoId}" />
+                    <input type="hidden" name="Detalles[${index}].Cantidad" value="${detalle.Cantidad}" />
+                    <input type="hidden" name="Detalles[${index}].PrecioUnitario" value="${detalle.PrecioUnitario.toFixed(2)}" />
+                    <input type="hidden" name="Detalles[${index}].Subtotal" value="${detalle.Subtotal.toFixed(2)}" />
+                    <input type="hidden" name="Detalles[${index}].FechaVencimiento" value="${detalle.FechaVencimiento}" />
+                    <input type="hidden" name="Detalles[${index}].Lote" value="${detalle.Lote || ''}" /> 
+                `);
+            });
+        }
+
+        function limpiarFormulario() {
+            $('#productoSelect').val('');
+            $('#cantidadInput').val(1);
+            $('#precioInput').val('');
+            $('#fechaVencInput').val('');
+            $('#loteInput').val(''); 
+        }
+
+        // --- Lógica de Envío del Formulario ---
+        
+        $('#formCompra').submit(function(e) {
+            // ❗ CLAVE: Asegura que la lista de detalles no esté vacía.
+            // Si el problema persiste aquí, significa que detalles[] está vacío.
+            if (detalles.length === 0) {
+                e.preventDefault(); // Detiene el envío
+                alert('Debe agregar al menos un producto a la compra para continuar.');
+                return false;
+            }
+            
+            // ❗ CLAVE: Llama a actualizarCamposOcultos justo antes de enviar para garantizar que 
+            // los inputs ocultos estén en el DOM.
+            actualizarCamposOcultos(); 
+            
+            // Si todo está bien, retorna true y el formulario se envía.
+            return true;
+        });
+
+        // Inicializar
+        $(document).ready(function() {
+            actualizarTabla(); 
+        });
+    </script>
+}
