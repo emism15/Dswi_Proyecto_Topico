@@ -160,30 +160,89 @@ namespace Dswi_Proyecto_Topico.Data
         }
 
 
-
-        //Cambiar estado de cita
-        public async Task CambiarEstadoAsync(int citaId, string nuevoEstado)
+        public async Task ActualizarEstadoAsync(int citaId, string nuevoEstado)
         {
-            string[] estadosValidos = { "Pendiente", "Atendida", "Cancelada" };
-
-            if (!estadosValidos.Contains(nuevoEstado))
-                throw new Exception("Estado inválido");
-
-            using (SqlConnection cn = new SqlConnection(_connectionString))
+            using (var conn = new SqlConnection(_connectionString))
             {
-                string sql = @"
-        UPDATE Citas
-        SET EstadoCita = @estado
-        WHERE CitaId = @id";
+                await conn.OpenAsync();
+                var cmd = new SqlCommand("UPDATE Citas SET EstadoCita = @Estado WHERE CitaId = @CitaId", conn);
+                cmd.Parameters.AddWithValue("@Estado", nuevoEstado);
+                cmd.Parameters.AddWithValue("@CitaId", citaId);
 
-                SqlCommand cmd = new SqlCommand(sql, cn);
-                cmd.Parameters.AddWithValue("@estado", nuevoEstado);
-                cmd.Parameters.AddWithValue("@id", citaId);
-
-                await cn.OpenAsync();
                 await cmd.ExecuteNonQueryAsync();
             }
         }
+
+        public async Task<Cita> ObtenerPorIdAsync(int citaId)
+        {
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                await conn.OpenAsync();
+
+                string sql = @"
+            SELECT c.CitaId, c.FechaCita, c.MotivoConsulta, c.TipoCita, c.EstadoCita,
+                   a.AlumnoId, a.NombreCompleto, a.DNI, a.CodAlumno
+            FROM Citas c
+            INNER JOIN Alumno a ON c.AlumnoId = a.AlumnoId
+            WHERE c.CitaId = @CitaId";
+
+                var cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@CitaId", citaId);
+
+                using (var dr = await cmd.ExecuteReaderAsync())
+                {
+                    if (await dr.ReadAsync())
+                    {
+                        return new Cita
+                        {
+                            CitaId = dr.GetInt32(0),
+                            FechaCita = dr.GetDateTime(1),
+                            MotivoConsulta = dr.GetString(2),
+                            TipoCita = dr.GetString(3),
+                            EstadoCita = dr.GetString(4),
+
+                            Alumno = new Alumno
+                            {
+                                AlumnoId = dr.GetInt32(5),
+                                NombreCompleto = dr.GetString(6),
+                                DNI = dr.GetString(7),
+                                Codigo = dr.GetString(8)
+                            }
+                        };
+                    }
+                }
+            }
+
+            return null; // si no se encuentra la cita
+        }
+
+
+
+
+
+        ////Cambiar estado de cita
+        //public async Task CambiarEstadoAsync(int citaId, string nuevoEstado)
+        //{
+        //    string[] estadosValidos = { "Pendiente", "Atendida", "Cancelada" };
+
+        //    if (!estadosValidos.Contains(nuevoEstado))
+        //        throw new Exception("Estado inválido");
+
+        //    using (SqlConnection cn = new SqlConnection(_connectionString))
+        //    {
+        //        string sql = @"
+        //UPDATE Citas
+        //SET EstadoCita = @estado
+        //WHERE CitaId = @id";
+
+        //        SqlCommand cmd = new SqlCommand(sql, cn);
+        //        cmd.Parameters.AddWithValue("@estado", nuevoEstado);
+        //        cmd.Parameters.AddWithValue("@id", citaId);
+
+        //        await cn.OpenAsync();
+        //        await cmd.ExecuteNonQueryAsync();
+        //    }
+        //}
 
 
         public async Task<RegistrarCitaViewModel?> BuscarAlumnoPorCodigoAsync(string codigo)
@@ -214,37 +273,6 @@ namespace Dswi_Proyecto_Topico.Data
                 }
             }
         }
-
-        ////Buscar alumno por DNI o código
-        //public async Task<List<Alumno>> BuscarAlumnoAsync(string busqueda)
-        //{
-        //    var lista = new List<Alumno>();
-
-        //    using (SqlConnection cn = new SqlConnection(_connectionString))
-        //    {
-        //        string sql = @" SELECT AlumnoId, NombreCompleto, CodAlumno, DNI
-        //        FROM Alumno
-        //         WHERE DNI LIKE @b OR CodAlumno LIKE @b";
-
-        //        SqlCommand cmd = new SqlCommand(sql, cn);
-        //        cmd.Parameters.AddWithValue("@b", "%" + busqueda + "%");
-
-        //        await cn.OpenAsync();
-        //        var dr = await cmd.ExecuteReaderAsync();
-
-        //        while (await dr.ReadAsync())
-        //        {
-        //            lista.Add(new Alumno
-        //            {
-        //                AlumnoId = (int)dr["AlumnoId"],
-        //                NombreCompleto = dr["NombreCompleto"].ToString(),
-        //                Codigo = dr["CodAlumno"].ToString(),
-        //                DNI = dr["DNI"].ToString()
-        //            });
-        //        }
-        //    }
-        //    return lista;
-        //}
 
         // Verificar cruce de horario
         public async Task<bool> ExisteCruceAsync(DateTime fechaHora)

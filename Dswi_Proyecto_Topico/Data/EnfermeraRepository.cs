@@ -31,20 +31,19 @@ namespace Dswi_Proyecto_Topico.Data
             AND CAST(FechaCita AS DATE) = CAST(GETDATE() AS DATE)", cn);
             vm.PacientesAtendidosHoy = (int)await cmdAtendidos.ExecuteScalarAsync();
 
-            SqlCommand cmdCitas = new SqlCommand(@"
-             SELECT TOP 5 
-             c.CitaId, 
-             c.FechaCita, 
-             a.NombreCompleto
-              FROM Citas c
-              INNER JOIN Alumno a ON c.AlumnoId = a.AlumnoId
-             WHERE c.FechaCita >= GETDATE()
-               ORDER BY c.FechaCita", cn);
+            //Citas programas para hoy
+            SqlCommand cmdCitasHoy = new SqlCommand(@"
+            SELECT c.CitaId, c.FechaCita, a.NombreCompleto
+             FROM Citas c
+             INNER JOIN Alumno a ON c.AlumnoId = a.AlumnoId
+             WHERE CAST(c.FechaCita AS DATE) = CAST(GETDATE() AS DATE)
+              ORDER BY c.FechaCita", cn);
 
-            using var dr = await cmdCitas.ExecuteReaderAsync();
+
+            using var dr = await cmdCitasHoy.ExecuteReaderAsync();
             while (await dr.ReadAsync())
             {
-                vm.ProximasCitas.Add(new Cita
+                vm.CitasHoy.Add(new Cita
                 {
                     CitaId = dr.GetInt32(0),
                     FechaCita = dr.GetDateTime(1),
@@ -57,6 +56,7 @@ namespace Dswi_Proyecto_Topico.Data
 
             return vm;
         }
+
 
 
 

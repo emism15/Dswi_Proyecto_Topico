@@ -3,8 +3,7 @@
 namespace Dswi_Proyecto_Topico.Models.ViewModels
 {
     public class DashboardEnfermeraViewModel
-    {
-        public int CitasHoy { get; set; }
+    {  
         public int CitasPendientes { get; set; }
 
         public int PacientesAtendidosHoy { get; set; }
@@ -15,7 +14,11 @@ namespace Dswi_Proyecto_Topico.Models.ViewModels
        
         public List<Cita> ProximasCitas { get; set; } = new List<Cita>();
 
-       
+        // Nuevo: citas programadas para hoy
+        public List<Cita> CitasHoy { get; set; } = new();
+
+
+
         public List<Cita> CitasProximas
         {
             get => ProximasCitas;

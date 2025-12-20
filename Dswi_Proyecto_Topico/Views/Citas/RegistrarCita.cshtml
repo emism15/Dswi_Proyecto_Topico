@@ -24,14 +24,14 @@
 
 <div class="card shadow-sm mb-4">
     <div class="card-header bg-success text-white">
-        Busqueda de Alumno
+        <strong>Buscar Alumno</strong>
     </div>
     <div class="card-body">
         <form asp-controller="Citas" asp-action="BuscarAlumno" method="post" class="row g-03">
             @Html.AntiForgeryToken()
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="col-md-9">
-                <label class="form-label">Codigo del alumno</label>
+                <label class="form-label"><strong>Codigo de Alumno:</strong></label>
                 <input asp-for="Codigo" class="form-control" maxlength="10"
                        oninput="this.value = this.value.replace(/[^i0-9]/g, '')"
                        placeholder="Ingrese Código del Alumno. Ejemplo: i200000000" />
@@ -72,57 +72,60 @@
 
         <!--Datos del Alumno-->
         <div class="card shadow-sm mb-4">
-            <div class="card-header bg-success text-white">Datos del Alumno</div>
+        <div class="card-header bg-success text-white"><strong>Datos del Alumno</strong></div>
             <div class="card-body">
                 <input type="hidden" asp-for="AlumnoId" />
 
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label">Codigo</label>
+                    <label class="form-label"><strong>Codigo de Alumno:</strong></label>
                         <input asp-for="Codigo" class="form-control" readonly />
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Nombre y apellidos Completos</label>
+                    <label class="form-label"><strong>Nombres y Apellidos:</strong></label>
                         <input asp-for="NombreCompleto" class="form-control" readonly />
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">DNI</label>
+                    <label class="form-label"><strong>DNI:</strong></label>
                         <input asp-for="DNI" class="form-control" readonly />
                     </div>
+                  
+
+                <!-- Fecha y hora -->
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label><strong>Fecha:</strong></label>
+                        <input asp-for="Fecha" type="date" class="form-control" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label><strong>Hora:</strong></label>
+                        <input asp-for="Hora" type="time" class="form-control" required />
+                    </div>
+                </div>
+
+                <!-- Tipo -->
+                <div class="mb-3 mt-3">
+                    <label><strong>Tipo de Cita</strong></label>
+                    <select asp-for="TipoCita" class="form-select" required>
+                        <option value="">-- Seleccione --</option>
+                        <option>Consulta</option>
+                        <option>Seguimiento</option>
+                        <option>Emergencia Leve</option>
+                    </select>
+                </div>
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="submit" class="btn btn-outline-success px-4">
+                        <i class="bi bi-check-circle me-1"></i>
+                        Registrar
+                    </button>
+                </div>
+
             
                 </div>
             </div>
         </div>
  
 
-    <!-- Fecha y hora -->
-    <div class="row">
-        <div class="col-md-6">
-            <label>Fecha</label>
-            <input asp-for="Fecha" type="date" class="form-control" required />
-        </div>
-        <div class="col-md-6">
-            <label>Hora</label>
-            <input asp-for="Hora" type="time" class="form-control" required />
-        </div>
-    </div>
-
-    <!-- Tipo -->
-    <div class="mb-3 mt-3">
-        <label>Tipo de Cita</label>
-        <select asp-for="TipoCita" class="form-select" required>
-            <option value="">-- Seleccione --</option>
-            <option>Consulta</option>
-            <option>Seguimiento</option>
-            <option>Emergencia Leve</option>
-        </select>
-    </div>
-    <div class="d-flex justify-content-between mt-4">
-        <button type="submit" class="btn btn-outline-success px-4">
-            <i class="bi bi-check-circle me-1"></i>
-            Registrar
-        </button>
-    </div>
 </form>
 
 
