@@ -1,0 +1,202 @@
+﻿@model TopicoMedico.Models.ViewModels.AtenderCitaViewModel
+
+@{
+    ViewData["Title"] = "Atender Cita";
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="fas fa-notes-medical"></i> Atender Cita Médica</h2>
+            <p class="text-muted">Registre los datos de la atención del paciente</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-user"></i> Información del Paciente</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <p class="mb-1"><strong><i class="fas fa-user"></i> Paciente:</strong></p>
+                            <p class="text-muted">@Model.NombrePaciente</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <p class="mb-1"><strong><i class="fas fa-calendar"></i> Fecha de Cita:</strong></p>
+                            <p class="text-muted">@Model.FechaCita.ToString("dd/MM/yyyy HH:mm")</p>
+                        </div>
+                        <div class="col-12">
+                            <p class="mb-1"><strong><i class="fas fa-clipboard"></i> Motivo de Consulta:</strong></p>
+                            <p class="text-muted">@Model.MotivoConsulta</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-edit"></i> Datos de Atención</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="AtenderCita" asp-route-id="@Model.CitaId" method="post">
+                        @Html.AntiForgeryToken()
+                        @Html.HiddenFor(m => m.CitaId)
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="row">
+                            <!-- Signos Vitales -->
+                            <div class="col-12 mb-3">
+                                <h6 class="text-primary"><i class="fas fa-heartbeat"></i> Signos Vitales</h6>
+                                <hr>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="Temperatura" class="form-label">
+                                    <i class="fas fa-thermometer-half"></i> Temperatura (°C)
+                                </label>
+                                <input asp-for="Temperatura" type="text" class="form-control"
+                                       placeholder="36.5" />
+                                <span asp-validation-for="Temperatura" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="PresionArterial" class="form-label">
+                                    <i class="fas fa-tint"></i> Presión Arterial
+                                </label>
+                                <input asp-for="PresionArterial" type="text" class="form-control"
+                                       placeholder="120/80" />
+                                <span asp-validation-for="PresionArterial" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="Pulso" class="form-label">
+                                    <i class="fas fa-heart"></i> Pulso (lpm)
+                                </label>
+                                <input asp-for="Pulso" type="text" class="form-control"
+                                       placeholder="70" />
+                                <span asp-validation-for="Pulso" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="SaturacionO2" class="form-label">
+                                    <i class="fas fa-lungs"></i> Saturación O2 (%)
+                                </label>
+                                <input asp-for="SaturacionO2" type="text" class="form-control"
+                                       placeholder="98" />
+                                <span asp-validation-for="SaturacionO2" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FrecuenciaRespiratoria" class="form-label">
+                                    <i class="fas fa-wind"></i> Frecuencia Respiratoria
+                                </label>
+                                <input asp-for="FrecuenciaRespiratoria" type="text" class="form-control"
+                                       placeholder="16 rpm" />
+                                <span asp-validation-for="FrecuenciaRespiratoria" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Diagnóstico -->
+                            <div class="col-12 mb-3 mt-3">
+                                <h6 class="text-primary"><i class="fas fa-stethoscope"></i> Diagnóstico</h6>
+                                <hr>
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <label asp-for="Diagnostico" class="form-label">
+                                    <i class="fas fa-file-medical"></i> Diagnóstico <span class="text-danger">*</span>
+                                </label>
+                                <textarea asp-for="Diagnostico" class="form-control" rows="4"
+                                          placeholder="Descripción detallada del diagnóstico médico..." required></textarea>
+                                <span asp-validation-for="Diagnostico" class="text-danger small"></span>
+                                <small class="form-text text-muted">Mínimo 10 caracteres, máximo 500</small>
+                            </div>
+
+                            <!-- Observaciones -->
+                            <div class="col-12 mb-3">
+                                <label asp-for="Observaciones" class="form-label">
+                                    <i class="fas fa-notes-medical"></i> Observaciones Adicionales
+                                </label>
+                                <textarea asp-for="Observaciones" class="form-control" rows="3"
+                                          placeholder="Observaciones, recomendaciones o notas adicionales..."></textarea>
+                                <span asp-validation-for="Observaciones" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info mt-3" role="alert">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Nota:</strong> Una vez registrada la atención, podrá generar la receta médica con los medicamentos necesarios.
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a asp-action="Citas" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Registrar Atención
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Lateral -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Importante</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i>
+                            Registre los signos vitales del paciente
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i>
+                            El diagnóstico es obligatorio (mínimo 10 caracteres)
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i>
+                            Agregue observaciones relevantes
+                        </li>
+                        <li class="mb-0">
+                            <i class="fas fa-check text-success"></i>
+                            Después podrá generar la receta médica
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-notes-medical"></i> Valores de Referencia</h6>
+                </div>
+                <div class="card-body small">
+                    <p class="mb-2"><strong>Temperatura:</strong> 36.5 - 37.5 °C</p>
+                    <p class="mb-2"><strong>Presión Arterial:</strong> 120/80 mmHg</p>
+                    <p class="mb-2"><strong>Pulso:</strong> 60 - 100 lpm</p>
+                    <p class="mb-2"><strong>Saturación O2:</strong> 95 - 100%</p>
+                    <p class="mb-0"><strong>Frec. Respiratoria:</strong> 12 - 20 rpm</p>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0"><i class="fas fa-clock"></i> Próximo Paso</h6>
+                </div>
+                <div class="card-body text-center">
+                    <i class="fas fa-prescription fa-3x text-success mb-3"></i>
+                    <p class="mb-0">Después de registrar la atención, será redirigido para crear la receta médica con los medicamentos necesarios.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

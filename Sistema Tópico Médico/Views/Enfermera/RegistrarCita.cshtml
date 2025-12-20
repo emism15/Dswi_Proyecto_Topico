@@ -1,0 +1,147 @@
+﻿@model TopicoMedico.Models.ViewModels.CitaViewModel
+
+@{
+    ViewData["Title"] = "Registrar Nueva Cita";
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="fas fa-calendar-plus"></i> Registrar Nueva Cita</h2>
+            <p class="text-muted">Complete los datos para agendar una cita médica</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-edit"></i> Datos de la Cita</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="RegistrarCita" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="row">
+                            <!-- Paciente -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PacienteId" class="form-label">
+                                    <i class="fas fa-user"></i> Paciente <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="PacienteId" class="form-select" required>
+                                    <option value="">-- Seleccione un paciente --</option>
+                                    @if (Model.PacientesDisponibles != null)
+                                    {
+                                        foreach (var paciente in Model.PacientesDisponibles)
+                                        {
+                                            <option value="@paciente.UsuarioId">
+                                                @paciente.NombreCompleto - DNI: @paciente.DNI
+                                            </option>
+                                        }
+                                    }
+                                </select>
+                                <span asp-validation-for="PacienteId" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Fecha y Hora -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FechaCita" class="form-label">
+                                    <i class="fas fa-calendar"></i> Fecha y Hora <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="FechaCita" type="datetime-local" class="form-control" required />
+                                <span asp-validation-for="FechaCita" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Motivo de Consulta -->
+                            <div class="col-12 mb-3">
+                                <label asp-for="MotivoConsulta" class="form-label">
+                                    <i class="fas fa-clipboard"></i> Motivo de Consulta <span class="text-danger">*</span>
+                                </label>
+                                <textarea asp-for="MotivoConsulta" class="form-control" rows="4"
+                                          placeholder="Describa el motivo de la consulta médica..." required></textarea>
+                                <span asp-validation-for="MotivoConsulta" class="text-danger small"></span>
+                                <small class="form-text text-muted">Mínimo 10 caracteres, máximo 300</small>
+                            </div>
+
+                            <!-- Observaciones -->
+                            <div class="col-12 mb-3">
+                                <label asp-for="Observaciones" class="form-label">
+                                    <i class="fas fa-notes-medical"></i> Observaciones Adicionales
+                                </label>
+                                <textarea asp-for="Observaciones" class="form-control" rows="3"
+                                          placeholder="Información adicional relevante (alergias, medicamentos, etc.)"></textarea>
+                                <span asp-validation-for="Observaciones" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info mt-3" role="alert">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Nota:</strong> Asegúrese de verificar la disponibilidad del paciente antes de confirmar la cita. La cita se creará en estado "Pendiente" por defecto.
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a asp-action="Citas" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Registrar Cita
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de Información -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-info-circle"></i> Información</h6>
+                </div>
+                <div class="card-body">
+                    <p class="small mb-2">
+                        <i class="fas fa-check text-success"></i> Verifique disponibilidad del paciente
+                    </p>
+                    <p class="small mb-2">
+                        <i class="fas fa-check text-success"></i> Confirme horario de atención
+                    </p>
+                    <p class="small mb-2">
+                        <i class="fas fa-check text-success"></i> Asigne doctor si es posible
+                    </p>
+                    <p class="small mb-0">
+                        <i class="fas fa-check text-success"></i> Complete todos los campos obligatorios
+                    </p>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0"><i class="fas fa-clock"></i> Horarios</h6>
+                </div>
+                <div class="card-body">
+                    <p class="small mb-2"><strong>Lunes a Viernes:</strong><br>8:00 AM - 6:00 PM</p>
+                    <p class="small mb-2"><strong>Sábados:</strong><br>9:00 AM - 1:00 PM</p>
+                    <p class="small mb-0"><strong>Domingos:</strong><br>Cerrado</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Establecer fecha mínima (hoy)
+        document.addEventListener('DOMContentLoaded', function() {
+            var now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+
+            var dateInput = document.querySelector('input[type="datetime-local"]');
+            if (dateInput) {
+                dateInput.min = now.toISOString().slice(0, 16);
+            }
+        });
+    </script>
+}

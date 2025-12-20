@@ -1,0 +1,250 @@
+﻿@model TopicoMedico.Models.ViewModels.DashboardPacienteViewModel
+@{
+    ViewData["Title"] = "Mi Panel - Paciente";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2><i class="fas fa-user-injured me-2"></i>Bienvenido, @Context.Session.GetString("NombreCompleto")</h2>
+        <p class="text-muted">Panel de control del paciente</p>
+    </div>
+    <div>
+        <span class="text-muted">
+            <i class="fas fa-calendar me-1"></i>
+            @DateTime.Now.ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("es-ES"))
+        </span>
+    </div>
+</div>
+
+<!-- Tarjetas de Resumen -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card border-primary">
+            <div class="card-body text-center">
+                <i class="fas fa-calendar-check fa-3x text-primary mb-3"></i>
+                <h3 class="mb-1">@Model.CitasPendientes</h3>
+                <p class="text-muted mb-0">Citas Pendientes</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-success">
+            <div class="card-body text-center">
+                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                <h3 class="mb-1">@Model.CitasAtendidas</h3>
+                <p class="text-muted mb-0">Citas Atendidas</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-info">
+            <div class="card-body text-center">
+                <i class="fas fa-prescription fa-3x text-info mb-3"></i>
+                <h3 class="mb-1">@Model.RecetasVigentes</h3>
+                <p class="text-muted mb-0">Recetas Vigentes</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Próxima Cita -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-calendar-day me-2"></i>Próxima Cita</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.ProximaCita != null)
+                {
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-clock me-2"></i>
+                            @Model.ProximaCita.FechaCita.ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("es-ES"))
+                        </h6>
+                        <p class="mb-2">
+                            <strong>Hora:</strong> @Model.ProximaCita.FechaCita.ToString("HH:mm")
+                        </p>
+                        <p class="mb-2">
+                            <strong>Motivo:</strong> @Model.ProximaCita.MotivoConsulta
+                        </p>
+                        @if (Model.ProximaCita.Enfermera != null)
+                        {
+                            <p class="mb-2">
+                                <strong>Enfermera:</strong> @Model.ProximaCita.Enfermera.NombreCompleto
+                            </p>
+                        }
+                        <hr />
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-warning">
+                                <i class="fas fa-hourglass-half me-1"></i>Pendiente
+                            </span>
+                            <a href="@Url.Action("DetalleCita", new { id = Model.ProximaCita.CitaId })" class="btn btn-sm btn-primary">
+                                <i class="fas fa-eye me-1"></i>Ver Detalles
+                            </a>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No tienes citas programadas</p>
+                        <small class="text-muted">Contacta con enfermería para agendar una cita</small>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Historial Reciente -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-history me-2"></i>Historial Reciente</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.HistorialCitas != null && Model.HistorialCitas.Any())
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var cita in Model.HistorialCitas)
+                        {
+                            <div class="list-group-item px-0">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">@cita.FechaCita.ToString("dd/MM/yyyy")</h6>
+                                        <p class="mb-1 text-muted small">@cita.MotivoConsulta</p>
+                                        @if (!string.IsNullOrEmpty(cita.Diagnostico))
+                                        {
+                                            <small class="text-success">
+                                                <i class="fas fa-stethoscope me-1"></i>@cita.Diagnostico
+                                            </small>
+                                        }
+                                    </div>
+                                    <a href="@Url.Action("DetalleCita", new { id = cita.CitaId })" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="@Url.Action("MisCitas")" class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-list me-1"></i>Ver Todo el Historial
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="fas fa-clipboard fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No hay historial de citas</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recetas Recientes -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-prescription-bottle-alt me-2"></i>Recetas Recientes</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.RecetasRecientes != null && Model.RecetasRecientes.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Indicaciones</th>
+                                    <th>Enfermera</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var receta in Model.RecetasRecientes)
+                                {
+                                    <tr>
+                                        <td>@receta.FechaEmision.ToString("dd/MM/yyyy")</td>
+                                        <td>@(receta.Indicaciones ?? "Sin indicaciones")</td>
+                                        <td>@receta.Enfermera?.NombreCompleto</td>
+                                        <td>
+                                            @if (receta.Estado == "Vigente")
+                                            {
+                                                <span class="badge bg-success">Vigente</span>
+                                            }
+                                            else if (receta.Estado == "Cumplida")
+                                            {
+                                                <span class="badge bg-secondary">Cumplida</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">Anulada</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <a href="@Url.Action("DetalleReceta", new { id = receta.RecetaId })" class="btn btn-sm btn-outline-info">
+                                                <i class="fas fa-eye me-1"></i>Ver
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="@Url.Action("MisRecetas")" class="btn btn-outline-info">
+                            <i class="fas fa-list me-1"></i>Ver Todas las Recetas
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="fas fa-prescription fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No tienes recetas registradas</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Accesos Rápidos -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-rocket me-2"></i>Accesos Rápidos</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4 mb-3">
+                        <a href="@Url.Action("MisCitas")" class="btn btn-lg btn-outline-primary w-100">
+                            <i class="fas fa-calendar-alt fa-2x mb-2 d-block"></i>
+                            Mis Citas
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="@Url.Action("MisRecetas")" class="btn btn-lg btn-outline-info w-100">
+                            <i class="fas fa-prescription fa-2x mb-2 d-block"></i>
+                            Mis Recetas
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="@Url.Action("Alertas")" class="btn btn-lg btn-outline-warning w-100">
+                            <i class="fas fa-bell fa-2x mb-2 d-block"></i>
+                            Notificaciones
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
