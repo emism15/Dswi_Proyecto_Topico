@@ -1,0 +1,128 @@
+﻿@model IEnumerable<Dswi_Proyecto_Topico.Models.ViewModels.MedicamentoModel>
+
+<table class="table table-hover align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>Medicamento</th>
+            <th style="width:180px">Stock</th>
+            <th style="width:160px">Cantidad</th>
+            <th style="width:160px">Estado</th>
+            <th style="width:120px">Acción</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Any())
+        {
+            foreach (var med in Model)
+            {
+                var porcentaje = Math.Min(med.Stock * 4, 100);
+
+                <tr>
+                    <td class="fw-semibold">@med.Nombre</td>
+
+                    <td>
+                        <div class="progress" style="height:6px;">
+                            <div class="progress-bar
+                                        @(med.Stock > 10 ? "bg-success" : "bg-warning")"
+                                 style="width:@porcentaje%">
+                            </div>
+                        </div>
+                        <small class="text-muted">@med.Stock disponibles</small>
+                    </td>
+
+                   
+                    <td>
+                        <div class="input-group input-group-sm">
+                            <button class="btn btn-outline-secondary"
+                                    onclick="cambiarCantidad(@med.MedicamentoId, -1)">
+                                −
+                            </button>
+
+                            <input type="number"
+                                   id="cantidad_@med.MedicamentoId"
+                                   class="form-control text-center"
+                                   value="1" min="1" max="@med.Stock">
+
+                            <button class="btn btn-outline-secondary"
+                                    onclick="cambiarCantidad(@med.MedicamentoId, 1)">
+                                +
+                            </button>
+                        </div>
+                    </td>
+
+                    
+                    <td>
+                        @if (med.Stock > 0)
+                        {
+                            <span class="badge bg-success-subtle text-success">
+                                <i class="bi bi-check-circle me-1"></i>Válido
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger-subtle text-danger">
+                                <i class="bi bi-exclamation-triangle me-1"></i>Stock insuficiente
+                            </span>
+                        }
+                    </td>
+
+                    
+                    <td>
+                        <button class="btn btn-sm btn-outline-success w-100 btn-sanna-green"
+                                onclick="agregarMedicamento(@med.MedicamentoId, '@med.Nombre', @med.Stock)"
+                                @(med.Stock == 0 ? "disabled" : "")>
+                                <i class="bi bi-plus-circle me-1"></i>
+                            Agregar
+                        </button>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="5" class="text-center text-muted py-4">
+                    No se encontraron medicamentos
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<script>
+    function agregarMedicamento(medicamentoId, nombre, stock) {
+        var cantidad = parseInt(document.getElementById('cantidad_' + medicamentoId).value);
+
+        if (cantidad <= 0 || cantidad > stock) {
+            alert("Cantidad inválida o stock insuficiente");
+            return;
+        }
+
+        $.post('/Enfermera/AgregarMedicamento', {
+            medicamentoId: medicamentoId,
+            nombre: nombre,
+            cantidad: cantidad,
+            stock: stock
+        })
+        .done(function (partial) {
+           
+            $('#tablaMedicamentos').html(partial);
+        })
+        .fail(function (err) {
+            alert(err.responseText);
+        });
+    }
+
+    function cambiarCantidad(id, cambio) {
+        let input = document.getElementById('cantidad_' + id);
+        let valor = parseInt(input.value) || 1;
+        let max = parseInt(input.max);
+
+        valor += cambio;
+
+        if (valor < 1) valor = 1;
+        if (valor > max) valor = max;
+
+        input.value = valor;
+    }
+</script>

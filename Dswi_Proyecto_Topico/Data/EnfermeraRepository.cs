@@ -26,10 +26,9 @@ namespace Dswi_Proyecto_Topico.Data
 
             // Pacientes atendidos hoy
             SqlCommand cmdAtendidos = new SqlCommand(@"
-        SELECT COUNT(*) 
-        FROM Citas 
-        WHERE EstadoCita = 'Atendida'
-        AND CAST(FechaCita AS DATE) = CAST(GETDATE() AS DATE)", cn);
+            SELECT COUNT(*)  FROM Citas 
+            WHERE EstadoCita = 'Atendida'
+            AND CAST(FechaCita AS DATE) = CAST(GETDATE() AS DATE)", cn);
             vm.PacientesAtendidosHoy = (int)await cmdAtendidos.ExecuteScalarAsync();
 
             SqlCommand cmdCitas = new SqlCommand(@"
