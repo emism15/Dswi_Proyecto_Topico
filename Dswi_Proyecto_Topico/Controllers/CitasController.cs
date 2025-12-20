@@ -16,13 +16,13 @@ namespace Dswi_Proyecto_Topico.Controllers
         }
 
         // GET: Citas
-        public IActionResult Index(string estado)
+        public async Task<IActionResult> Index(string estado)
         {
             var vm = new CitasVM();
 
-            vm.Citas = repo.Listar(estado);
+            vm.Citas = await repo.ListarAsync(estado);
 
-            var cont = repo.Contar();
+            var cont = await repo.ContarAsync();
             vm.Total = vm.Citas.Count;
             vm.Pendientes = cont.ContainsKey("Pendiente") ? cont["Pendiente"] : 0;
             vm.Atendidas = cont.ContainsKey("Atendida") ? cont["Atendida"] : 0;
@@ -32,41 +32,52 @@ namespace Dswi_Proyecto_Topico.Controllers
 
             return View(vm);
         }
-        // GET: Citas/NuevaCita
-        public IActionResult NuevaCita()
-        {
-            return View();
-        }
-
-        // POST: Citas/NuevaCita
-        [HttpPost]
-        public IActionResult NuevaCita(Cita c)
-        {
-            repo.Registrar(c);
-            return RedirectToAction("Index");
-        }
 
 
         // POST: Citas/CambiarEstado
-        public IActionResult CambiarEstado(int id, string estado)
+        [HttpPost]
+        public async Task<IActionResult> CambiarEstado(int id, string estado)
         {
-            repo.CambiarEstado(id, estado);
+            await repo.CambiarEstadoAsync(id, estado);
             return RedirectToAction("Index");
         }
 
-        //
-        public IActionResult Citas(string estado)
+        // GET: Citas/Citas
+        public async Task<IActionResult> Citas(string estado)
         {
             ViewBag.EstadoFiltro = estado;
 
-            var citas = repo.ObtenerCitas(estado);
+            var citas = await repo.ObtenerCitasAsync(estado);
 
             return View(citas);
         }
 
+        // GET: Citas/RegistrarCita
+        public IActionResult RegistrarCita()
+        {
+            return View();
+        }
 
+        // POST
+        [HttpPost]
+        public async Task<IActionResult> RegistrarCita(RegistrarCitaViewModel vm)
+        {
+            if (!ModelState.IsValid)
+                return View(vm);
 
+            bool ok = await repo.RegistrarCitaAsync(vm);
+
+            if (!ok)
+            {
+                ModelState.AddModelError("", "Ya existe una cita en ese horario");
+                return View(vm);
+            }
+
+            return RedirectToAction("Citas");
+        }
 
 
     }
+
 }
+
