@@ -1,0 +1,161 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+<DataSources>
+<DataSource Name="dsAtencion">
+<DataSourceReference>dsAtencion</DataSourceReference>
+<rd:DataSourceID>AtencionDataSource</rd:DataSourceID>
+</DataSource>
+    <DataSource Name="dsMedicamentos">
+      <DataSourceReference>dsMedicamentos</DataSourceReference>
+      <rd:DataSourceID>MedicamentosDataSource</rd:DataSourceID>
+    </DataSource>
+  </DataSources>
+  <Body>
+    <ReportItems>
+      <!-- Encabezado del Reporte -->
+      <Textbox Name="Titulo">
+        <Value>REPORTE DE ATENCIÓN MÉDICA</Value>
+        <Style>
+          <FontSize>16pt</FontSize>
+          <FontWeight>Bold</FontWeight>
+          <TextAlign>Center</TextAlign>
+        </Style>
+      </Textbox>
+
+      <!-- Datos del Alumno -->
+      <Textbox Name="LblCodigoAlumno">
+        <Value>Código Alumno:</Value>
+        <Style>
+          <FontWeight>Bold</FontWeight>
+        </Style>
+      </Textbox>
+      <Textbox Name="CodigoAlumno">
+        <Value>=Fields!CodAlumno.Value</Value>
+      </Textbox>
+
+      <Textbox Name="LblNombreCompleto">
+        <Value>Nombre Completo:</Value>
+        <Style>
+          <FontWeight>Bold</FontWeight>
+        </Style>
+      </Textbox>
+      <Textbox Name="NombreCompleto">
+        <Value>=Fields!NombreCompleto.Value</Value>
+      </Textbox>
+
+      <Textbox Name="LblDni">
+        <Value>DNI:</Value>
+        <Style>
+          <FontWeight>Bold</FontWeight>
+        </Style>
+      </Textbox>
+      <Textbox Name="Dni">
+        <Value>=Fields!DNI.Value</Value>
+      </Textbox>
+
+      <Textbox Name="LblTelefono">
+        <Value>Teléfono:</Value>
+        <Style>
+          <FontWeight>Bold</FontWeight>
+        </Style>
+      </Textbox>
+      <Textbox Name="Telefono">
+        <Value>=Fields!Telefono.Value</Value>
+      </Textbox>
+
+      <Textbox Name="LblCorreo">
+        <Value>Correo:</Value>
+        <Style>
+          <FontWeight>Bold</FontWeight>
+        </Style>
+      </Textbox>
+      <Textbox Name="Correo">
+        <Value>=Fields!Correo.Value</Value>
+      </Textbox>
+
+      <!-- Datos de la Atención -->
+      <Textbox Name="LblFecha">
+        <Value>Fecha de Atención:</Value>
+        <Style>
+          <FontWeight>Bold</FontWeight>
+        </Style>
+      </Textbox>
+      <Textbox Name="Fecha">
+        <Value>=Fields!Fecha.Value</Value>
+      </Textbox>
+
+      <Textbox Name="LblHora">
+        <Value>Hora de Atención:</Value>
+        <Style>
+          <FontWeight>Bold</FontWeight>
+        </Style>
+      </Textbox>
+      <Textbox Name="Hora">
+        <Value>=Fields!Hora.Value</Value>
+      </Textbox>
+
+      <Textbox Name="LblDetallesClinicos">
+        <Value>Detalles Clínicos:</Value>
+        <Style>
+          <FontWeight>Bold</FontWeight>
+        </Style>
+      </Textbox>
+      <Textbox Name="DetallesClinicos">
+        <Value>=Fields!DetallesClinicos.Value</Value>
+      </Textbox>
+
+      <Textbox Name="LblDiagnosticoPreliminar">
+        <Value>Diagnóstico Preliminar:</Value>
+        <Style>
+          <FontWeight>Bold</FontWeight>
+        </Style>
+      </Textbox>
+      <Textbox Name="DiagnosticoPreliminar">
+        <Value>=Fields!DiagnosticoPreliminar.Value</Value>
+      </Textbox>
+
+      <!-- Tabla de Medicamentos -->
+      <Table Name="TablaMedicamentos">
+        <DataSetName>dsMedicamentos</DataSetName>
+        <Details>
+          <TableRows>
+            <TableRow>
+              <TableCells>
+                <TableCell>
+                  <ReportItems>
+                    <Textbox Name="MedicamentoNombre">
+                      <Value>=Fields!Nombre.Value</Value>
+                    </Textbox>
+                  </ReportItems>
+                </TableCell>
+                <TableCell>
+                  <ReportItems>
+                    <Textbox Name="MedicamentoCantidad">
+                      <Value>=Fields!Cantidad.Value</Value>
+                    </Textbox>
+                  </ReportItems>
+                </TableCell>
+              </TableCells>
+            </TableRow>
+          </TableRows>
+        </Details>
+      </Table>
+
+      <!-- Pie de Reporte -->
+      <Textbox Name="Pie">
+        <Value>Reporte generado automáticamente por el sistema.</Value>
+        <Style>
+          <FontSize>10pt</FontSize>
+          <TextAlign>Center</TextAlign>
+        </Style>
+      </Textbox>
+    </ReportItems>
+  </Body>
+  <Width>6.5in</Width>
+  <PageWidth>8.5in</PageWidth>
+  <PageHeight>11in</PageHeight>
+  <LeftMargin>0.5in</LeftMargin>
+  <RightMargin>0.5in</RightMargin>
+  <TopMargin>0.5in</TopMargin>
+  <BottomMargin>0.5in</BottomMargin>
+</Report>

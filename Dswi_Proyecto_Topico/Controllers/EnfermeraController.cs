@@ -11,12 +11,16 @@ namespace Dswi_Proyecto_Topico.Controllers
     {
         private readonly AlumnoRepository alumnoRepository;
          private readonly AtencionRepository atencionRepository;
+        private readonly ReporteAtencionRepository reporteAtencionRepository;
+        private readonly HistorialReporteRepository historialReporteRepository;
        
 
-        public EnfermeraController(AlumnoRepository alumnoRepository, AtencionRepository atencionRepository, EnfermeraRepository repo)
+        public EnfermeraController(AlumnoRepository alumnoRepository, AtencionRepository atencionRepository, ReporteAtencionRepository reporteAtencionRepository /*EnfermeraRepository repo*/, HistorialReporteRepository historialReporteRepository )
         {
             this.alumnoRepository = alumnoRepository;
             this.atencionRepository = atencionRepository;
+            this.reporteAtencionRepository = reporteAtencionRepository;
+            this.historialReporteRepository = historialReporteRepository;
         }
 
 
@@ -142,11 +146,15 @@ namespace Dswi_Proyecto_Topico.Controllers
                 new List<AtencionMedicamentoModel>();
             try
             {
-                await atencionRepository.RegistrarAtencionCompletaAsync(model, medicamentos);
+                int atencionId = await atencionRepository.RegistrarAtencionCompletaAsync(model, medicamentos);
                 HttpContext.Session.Remove("MedicamentosTemp");
 
                 TempData["MensajeExito"] = "Atención registrada correctamente.";
-                return RedirectToAction(nameof(RegistrarAtencion));
+                return RedirectToAction(
+             "GenerarReporte",
+             "Enfermera",
+             new { atencionId }
+         );
             }
 
             catch (SqlException e)
@@ -239,8 +247,72 @@ namespace Dswi_Proyecto_Topico.Controllers
         }
 
 
-        
+        [HttpGet]
+        public async Task<IActionResult> GenerarReporte(int atencionId)
+        {
+            var reporte = await reporteAtencionRepository.ObtenerReporteAtencionAsync(atencionId);
 
+            if(reporte == null)
+            {
+                TempData["Error"] = "No se puee generar el reporte. La atencion no existe o no está confirmada.";
+                return RedirectToAction("RegistrarAtencion", "Enfermera");
+            }
+
+            //RDLC - mas adelante
+
+            return View("VistaPreviaReporte", reporte);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ConfirmarGeneracionReporte(int atencionId)
+        {
+            await reporteAtencionRepository.MarcarReporteGeneradoAsync(atencionId);
+
+            TempData["MensajeExito"] = "Reporte generado correctamente.";
+            return RedirectToAction("RegistrarAtencion", "Enfermera");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> DescargarReportePdf(int id)
+        {
+            var reporte = await reporteAtencionRepository.ObtenerReporteParaPdfAsync(id);
+
+            if (reporte == null)
+            {
+                TempData["Error"] = "No se puee descargar el reporte.";
+                return RedirectToAction(nameof(RegistrarAtencion));
+            }
+            var rutaRdlc = Path.Combine(
+                Directory.GetCurrentDirectory(),
+                "Views", "Enfermera", "ReporteAtencion.rdlc");
+
+            var rdlcService = new RdlcReportService();
+            var pdfBytes = rdlcService.GenerarReporteAtencionPdf(reporte, rutaRdlc);
+
+            return File(
+                pdfBytes, "application/pdf",
+                $"ReporteAtencion_{reporte.Codigo}_{DateTime.Now:yyyyMMddHHmm}.pdf"
+                );
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> HistorialReportes()
+        {
+            var lista = await historialReporteRepository.ListarHistorialReporteAsync(null, null, null);
+            return View(lista);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> HistorialReportes(FiltroHistorialReporteModel filtro)
+        {
+            var lista = await historialReporteRepository.ListarHistorialReporteAsync(
+                filtro.Codigo,
+                filtro.FechaInicio,
+                filtro.FechaFin);
+
+            return View(lista);
+        }
 
     }
 }

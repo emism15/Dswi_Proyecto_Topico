@@ -14,7 +14,7 @@ namespace Dswi_Proyecto_Topico.Data
         }
 
        
-        public async Task RegistrarAtencionCompletaAsync (AtencionModel model, List<AtencionMedicamentoModel> medicamentos)
+        public async Task<int> RegistrarAtencionCompletaAsync (AtencionModel model, List<AtencionMedicamentoModel> medicamentos)
         {
             using(var conn = new SqlConnection(_connectionString))
             {
@@ -60,6 +60,7 @@ namespace Dswi_Proyecto_Topico.Data
                         await cmdSP.ExecuteNonQueryAsync();
 
                         tran.Commit();
+                        return atencionId;
 
                     }
                     catch

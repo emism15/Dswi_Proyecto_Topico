@@ -1,0 +1,162 @@
+﻿@model Dswi_Proyecto_Topico.Models.ViewModels.ReporteAtencionModel
+
+@{
+    ViewData["Title"] = "Vista Previa del Reporte de Atención";
+}
+
+<div class="container mt-4 mb-5">
+
+    <div class="card shadow border-0 rounded-4">
+
+       
+        <div class="card-header bg-success text-white rounded-top-4">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-file-earmark-medical fs-4 me-2"></i>
+                <div>
+                    <h5 class="mb-0">Vista Previa del Reporte de Atención Médica</h5>
+                    <small class="opacity-75">Resumen completo de la atención registrada</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body px-4 py-4">
+
+           
+            <div class="mb-4">
+                <h6 class="text-success fw-semibold mb-3">
+                    <i class="bi bi-person-badge me-1"></i>
+                    Datos del Alumno
+                </h6>
+
+                <div class="card bg-light border-0 shadow-sm rounded-3">
+                    <div class="card-body">
+                        <div class="row mb-2">
+                            <div class="col-md-4">
+                                <span class="text-muted">Código</span><br />
+                                <strong>@Model.Codigo</strong>
+                            </div>
+                            <div class="col-md-8">
+                                <span class="text-muted">Nombre Completo</span><br />
+                                <strong>@Model.NombreCompleto</strong>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <span class="text-muted">DNI</span><br />
+                                <strong>@Model.DNI</strong>
+                            </div>
+                            <div class="col-md-4">
+                                <span class="text-muted">Teléfono</span><br />
+                                <strong>@Model.Telefono</strong>
+                            </div>
+                            <div class="col-md-4">
+                                <span class="text-muted">Correo</span><br />
+                                <strong>@Model.Correo</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+           
+            <div class="mb-4">
+                <h6 class="text-success fw-semibold mb-3">
+                    <i class="bi bi-clipboard2-pulse me-1"></i>
+                    Datos de la Atención
+                </h6>
+
+                <div class="card bg-light border-0 shadow-sm rounded-3">
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <span class="text-muted">Fecha</span><br />
+                                <span class="badge bg-success-subtle text-success fs-6">
+                                    @Model.FechaAtencion.ToShortDateString()
+                                </span>
+                            </div>
+                            <div class="col-md-6">
+                                <span class="text-muted">Hora</span><br />
+                                <span class="badge bg-secondary-subtle text-secondary fs-6">
+                                    @Model.HoraAtencion.ToString(@"hh\:mm")
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <span class="text-muted">Detalles Clínicos</span>
+                            <div class="border rounded-3 p-3 bg-white mt-1">
+                                @Model.DetallesClinicos
+                            </div>
+                        </div>
+
+                        <div>
+                            <span class="text-muted">Diagnóstico Preliminar</span>
+                            <div class="border rounded-3 p-3 bg-white mt-1">
+                                @Model.DiagnosticoPreliminar
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+           
+            <div class="mb-2">
+                <h6 class="text-success fw-semibold mb-3">
+                    <i class="bi bi-capsule me-1"></i>
+                    Medicamentos Administrados
+                </h6>
+
+                @if (Model.Medicamentos.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle shadow-sm rounded-3 overflow-hidden">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Medicamento</th>
+                                    <th class="text-center" style="width:140px">Cantidad</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var med in Model.Medicamentos)
+                                {
+                                    <tr>
+                                        <td>
+                                            <i class="bi bi-dot text-success"></i>
+                                            @med.Nombre
+                                        </td>
+                                        <td class="text-center fw-semibold">
+                                            @med.Cantidad
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-secondary d-flex align-items-center">
+                        <i class="bi bi-info-circle me-2"></i>
+                        No se registraron medicamentos en esta atención.
+                    </div>
+                }
+            </div>
+
+        </div>
+
+        <div class="card-footer bg-white border-0 text-end px-4 py-3">
+
+            <form asp-action="ConfirmarGeneracionReporte" method="post" class="d-inline">
+                <input type="hidden" name="atencionId" value="@Model.AtencionId" />
+                <button type="submit" class="btn btn-success px-4">
+                    <i class="bi bi-check-circle me-1"></i>
+                    Confirmar Generación
+                </button>
+            </form>
+
+            
+
+        </div>
+    </div>
+</div>

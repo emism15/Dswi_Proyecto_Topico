@@ -5,11 +5,13 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
+builder.Services.AddControllersWithViews();
 
 
 builder.Services.AddScoped<AlumnoRepository>();
 builder.Services.AddScoped<AtencionRepository>();
+builder.Services.AddScoped<ReporteAtencionRepository>();
+builder.Services.AddScoped<HistorialReporteRepository>();
 builder.Services.AddScoped<AuthRepository>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddSession();
