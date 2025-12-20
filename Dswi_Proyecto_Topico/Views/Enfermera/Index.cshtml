@@ -46,28 +46,28 @@
     </div>
 
 <div class="row">
-    <!-- Próximas citas -->
+    <!-- Citas para hoy  -->
     <div class="col-md-6 mb-4">
         <div class="card">
-            <div class="card-header bg-primary text-white">
+                <div class="card-header bg-success text-white">
                 <h5 class="mb-0"><i class="fas fa-calendar-day me-2"></i>Citas Programadas Hoy</h5>
             </div>
             <div class="card-body">
                 @if (Model.CitasHoy != null && Model.CitasHoy.Any())
                 {
-                    <ul class="list-group list-group-flush">
-                        @foreach (var cita in Model.CitasHoy)
-                        {
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>@cita.Alumno?.NombreCompleto</strong>
-                                    <br />
-                                    <small class="text-muted">@cita.FechaCita.ToString("HH:mm")</small>
-                                </div>
-                                <a href="/Citas/DetalleCita/@cita.CitaId" class="btn btn-sm btn-primary">Ver</a>
-                            </li>
-                        }
-                    </ul>
+                        <ul class="list-group list-group-flush">
+                            @foreach (var cita in Model.CitasHoy)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <p class="mb-1"><strong>Nombre:</strong> @cita.Alumno?.NombreCompleto</p>
+                                        <p class="mb-0"><strong>Hora:</strong> @cita.FechaCita.ToString("HH:mm")</p>
+                                    </div>
+                                    <a href="/Citas/DetalleCita/@cita.CitaId" class="btn btn-sm btn-success">Ver</a>
+                                </li>
+                            }
+                        </ul>
+
                 }
                 else
                 {

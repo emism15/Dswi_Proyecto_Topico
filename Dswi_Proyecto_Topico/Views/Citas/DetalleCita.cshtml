@@ -51,19 +51,14 @@
             </div>
         </div>
 
-        <hr />
-
-        <h5 class="mb-2">Motivo de consulta</h5>
-        <p class="text-muted">@Model.MotivoConsulta</p>
-
-        <hr />
+        
 
         <form asp-action="ActualizarEstado" method="post" class="mt-3">
             @Html.AntiForgeryToken()
             <input type="hidden" name="id" value="@Model.CitaId" />
 
             <div class="mb-3">
-                <label class="form-label">Nuevo estado</label>
+                <label class="form-label"><strong>Cambiar Estado de Cita: </strong></label>
                 <select asp-for="EstadoCita" class="form-select">
                     <option value="Pendiente">Pendiente</option>
                     <option value="Atendida">Atendida</option>
@@ -73,7 +68,7 @@
 
 
             <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" class="btn btn-success">
                     <i class="fas fa-save"></i> Guardar
                 </button>
                 <a asp-action="Citas" class="btn btn-outline-secondary">
