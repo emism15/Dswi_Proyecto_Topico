@@ -2,17 +2,21 @@
 using Dswi_Proyecto_Topico.Models.Entitties;
 using Dswi_Proyecto_Topico.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 
 namespace Dswi_Proyecto_Topico.Controllers
 {
     public class CitasController : Controller
     {
 
-        private readonly CitaRepository repo;
+        private readonly CitaRepository citaRepo;
+        private readonly AlumnoRepository alumnoRepo;
 
-        public CitasController(IConfiguration config)
+        public CitasController(AlumnoRepository alumrepo, CitaRepository repo) 
         {
-            repo = new CitaRepository(config);
+            alumnoRepo = alumrepo;
+            citaRepo = repo;
+
         }
 
         // GET: Citas
@@ -20,9 +24,9 @@ namespace Dswi_Proyecto_Topico.Controllers
         {
             var vm = new CitasVM();
 
-            vm.Citas = await repo.ListarAsync(estado);
+            vm.Citas = await citaRepo.ListarAsync(estado);
 
-            var cont = await repo.ContarAsync();
+            var cont = await citaRepo.ContarAsync();
             vm.Total = vm.Citas.Count;
             vm.Pendientes = cont.ContainsKey("Pendiente") ? cont["Pendiente"] : 0;
             vm.Atendidas = cont.ContainsKey("Atendida") ? cont["Atendida"] : 0;
@@ -38,7 +42,7 @@ namespace Dswi_Proyecto_Topico.Controllers
         [HttpPost]
         public async Task<IActionResult> CambiarEstado(int id, string estado)
         {
-            await repo.CambiarEstadoAsync(id, estado);
+            await citaRepo.CambiarEstadoAsync(id, estado);
             return RedirectToAction("Index");
         }
 
@@ -47,36 +51,94 @@ namespace Dswi_Proyecto_Topico.Controllers
         {
             ViewBag.EstadoFiltro = estado;
 
-            var citas = await repo.ObtenerCitasAsync(estado);
+            var citas = await citaRepo.ObtenerCitasAsync(estado);
 
             return View(citas);
         }
 
-        // GET: Citas/RegistrarCita
+        // GET
+        [HttpGet]
         public IActionResult RegistrarCita()
         {
-            return View();
+            var model = new RegistrarCitaViewModel
+            {
+                Fecha = DateTime.Now.Date,
+                Hora = DateTime.Now.TimeOfDay,
+                TipoCita = string.Empty,
+                AlumnoEncontrado = false
+            };
+            return View(model);
         }
 
-        // POST
+        // POST Buscar Alumno
         [HttpPost]
-        public async Task<IActionResult> RegistrarCita(RegistrarCitaViewModel vm)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BuscarAlumno(RegistrarCitaViewModel model)
         {
             if (!ModelState.IsValid)
-                return View(vm);
+                return View("RegistrarCita", model);
 
-            bool ok = await repo.RegistrarCitaAsync(vm);
+        
+            var alumno = await alumnoRepo.BuscarAlumnoPorCodigoAsync(model.Codigo);
 
-            if (!ok)
+            if (alumno == null)
             {
-                ModelState.AddModelError("", "Ya existe una cita en ese horario");
-                return View(vm);
+                model.AlumnoEncontrado = false;
+                ModelState.AddModelError("", "El código ingresado no existe en el sistema");
+                return View("RegistrarCita", model);
             }
 
-            return RedirectToAction("Citas");
+            model.AlumnoEncontrado = true;
+            model.AlumnoId = alumno.AlumnoId;
+            model.NombreCompleto = alumno.NombreCompleto;
+            model.DNI = alumno.DNI;
+
+            ModelState.Clear();
+            return View("RegistrarCita", model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RegistrarCita(RegistrarCitaViewModel model)
+        {
+            if (!model.AlumnoEncontrado || model.AlumnoId == 0)
+            {
+                ModelState.AddModelError("", "Debe buscar y confirmar un alumno antes de registrar la cita.");
+                return View("RegistrarCita", model);
+            }
+
+            if (string.IsNullOrWhiteSpace(model.TipoCita))
+            {
+                ModelState.AddModelError("TipoCita", "Debe seleccionar un tipo de cita.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View("RegistrarCita", model);
+            }
+
+            try
+            {
+                int citaId = await citaRepo.RegistrarCitaAsync(model);
+
+                if (citaId <= 0)
+                {
+                    ModelState.AddModelError("", "Ya existe una cita en ese horario.");
+                    return View("RegistrarCita", model);
+                }
+
+                TempData["MensajeExito"] = $"Cita registrada correctamente (ID {citaId}).";
+                return RedirectToAction(nameof(RegistrarCita)); // ← permanecer en el módulo de enfermería
+            }
+            catch (SqlException e)
+            {
+                ModelState.AddModelError("", e.Message);
+                return View("RegistrarCita", model);
+            }
         }
 
 
+    
     }
 
 }
