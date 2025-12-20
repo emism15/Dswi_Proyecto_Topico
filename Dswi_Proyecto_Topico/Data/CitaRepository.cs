@@ -24,9 +24,8 @@ namespace Dswi_Proyecto_Topico.Data
             using (SqlConnection cn = new SqlConnection(_connectionString))
             {
                 string sql = @"
-        SELECT 
-            c.CitaId, c.FechaCita, c.MotivoConsulta, c.EstadoCita,
-            a.AlumnoId, a.NombreCompleto, a.DNI, a.Codigo
+        SELECT c.CitaId, c.FechaCita, c.MotivoConsulta, c.EstadoCita,
+            a.AlumnoId, a.NombreCompleto, a.DNI, a.CodAlumno
         FROM Citas c
         INNER JOIN Alumno a ON c.AlumnoId = a.AlumnoId
         WHERE (@estado IS NULL OR c.EstadoCita = @estado)
@@ -180,9 +179,9 @@ namespace Dswi_Proyecto_Topico.Data
 
             using (SqlConnection cn = new SqlConnection(_connectionString))
             {
-                string sql = @" SELECT AlumnoId, NombreCompleto, Codigo, DNI
+                string sql = @" SELECT AlumnoId, NombreCompleto, CodAlumno, DNI
                 FROM Alumno
-                 WHERE DNI LIKE @b OR Codigo LIKE @b";
+                 WHERE DNI LIKE @b OR CodAlumno LIKE @b";
 
                 SqlCommand cmd = new SqlCommand(sql, cn);
                 cmd.Parameters.AddWithValue("@b", "%" + busqueda + "%");
@@ -196,7 +195,7 @@ namespace Dswi_Proyecto_Topico.Data
                     {
                         AlumnoId = (int)dr["AlumnoId"],
                         NombreCompleto = dr["NombreCompleto"].ToString(),
-                        Codigo = dr["Codigo"].ToString(),
+                        Codigo = dr["CodAlumno"].ToString(),
                         DNI = dr["DNI"].ToString()
                     });
                 }
