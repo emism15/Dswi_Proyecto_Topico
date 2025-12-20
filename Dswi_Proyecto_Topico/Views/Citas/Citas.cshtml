@@ -170,10 +170,11 @@
                                     <td class="text-center">
                                         @if (cita.EstadoCita == "Pendiente")
                                         {
-                                            <a asp-action="AtenderCita" asp-route-id="@cita.CitaId"
-                                               class="btn btn-sm btn-primary" title="Atender Cita">
-                                                <i class="fas fa-notes-medical"></i> Atender
+                                            <a asp-action="DetalleCita" asp-route-id="@cita.CitaId"
+                                               class="btn btn-sm btn-primary" title="Ver Detalle">
+                                                <i class="fas fa-notes-medical"></i> Detalle
                                             </a>
+
                                         }
                                         else if (cita.EstadoCita == "Atendida")
                                         {

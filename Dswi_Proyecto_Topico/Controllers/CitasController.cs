@@ -37,14 +37,38 @@ namespace Dswi_Proyecto_Topico.Controllers
             return View(vm);
         }
 
-
-        // POST: Citas/CambiarEstado
-        [HttpPost]
-        public async Task<IActionResult> CambiarEstado(int id, string estado)
+        // GET: Detalle de cita
+        [HttpGet]
+        public async Task<IActionResult> DetalleCita(int id)
         {
-            await citaRepo.CambiarEstadoAsync(id, estado);
-            return RedirectToAction("Index");
+            var cita = await citaRepo.ObtenerPorIdAsync(id);
+            if (cita == null)
+                return NotFound();
+
+            return View(cita);
         }
+
+        // POST: Actualizar estado
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ActualizarEstado(int id, Cita cita)
+        {
+            await citaRepo.ActualizarEstadoAsync(id, cita.EstadoCita);
+            TempData["MensajeExito"] = $"Estado de la cita #{id} actualizado a {cita.EstadoCita}.";
+            return RedirectToAction(nameof(Citas));
+        }
+
+
+
+
+
+        //// POST: Citas/CambiarEstado
+        //[HttpPost]
+        //public async Task<IActionResult> CambiarEstado(int id, string estado)
+        //{
+        //    await citaRepo.CambiarEstadoAsync(id, estado);
+        //    return RedirectToAction("Index");
+        //}
 
         // GET: Citas/Citas
         public async Task<IActionResult> Citas(string estado)

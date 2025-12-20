@@ -10,6 +10,7 @@
     <span class="text-muted">@DateTime.Now.ToString("dddd, dd MMMM yyyy")</span>
 </div>
 
+<!-- Citas pendientes -->
 
 <div class="row mb-4">
     <div class="col-md-4 mb-3">
@@ -22,6 +23,7 @@
         </div>
     </div>
 
+    <!-- pacientes atendidos hoy -->
     <div class="col-md-4 mb-3">
         <div class="card border-success">
             <div class="card-body text-center">
@@ -32,37 +34,37 @@
         </div>
     </div>
 
+    <!-- Citas de hoy -->
     <div class="col-md-4 mb-3">
         <div class="card border-warning">
             <div class="card-body text-center">
                 <i class="fas fa-calendar-day fa-3x text-warning mb-3"></i>
-                <h3 class="display-6 fw-bold">@Model.ProximasCitas.Count</h3>
-                <p class="text-muted mb-0">Próximas Citas</p>
+                <h3 class="display-6 fw-bold">@Model.CitasHoy.Count</h3>
+                <p class="text-muted mb-0">Citas Programadas Hoy</p>
             </div>
         </div>
     </div>
-</div>
 
 <div class="row">
     <!-- Próximas citas -->
     <div class="col-md-6 mb-4">
         <div class="card">
             <div class="card-header bg-primary text-white">
-                <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Próximas Citas</h5>
+                <h5 class="mb-0"><i class="fas fa-calendar-day me-2"></i>Citas Programadas Hoy</h5>
             </div>
             <div class="card-body">
-                @if (Model.ProximasCitas != null && Model.ProximasCitas.Any())
+                @if (Model.CitasHoy != null && Model.CitasHoy.Any())
                 {
                     <ul class="list-group list-group-flush">
-                        @foreach (var cita in Model.ProximasCitas.Take(5))
+                        @foreach (var cita in Model.CitasHoy)
                         {
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <div>
                                     <strong>@cita.Alumno?.NombreCompleto</strong>
                                     <br />
-                                    <small class="text-muted">@cita.FechaCita.ToString("dd/MM/yyyy HH:mm")</small>
+                                    <small class="text-muted">@cita.FechaCita.ToString("HH:mm")</small>
                                 </div>
-                                <a href="/Enfermera/Atender/@cita.CitaId" class="btn btn-sm btn-primary">Atender</a>
+                                <a href="/Citas/DetalleCita/@cita.CitaId" class="btn btn-sm btn-primary">Ver</a>
                             </li>
                         }
                     </ul>
@@ -71,12 +73,13 @@
                 {
                     <div class="text-center py-3 text-muted">
                         <i class="fas fa-check-circle fa-3x mb-2"></i>
-                        <p>No hay próximas citas</p>
+                        <p>No hay citas programadas para hoy</p>
                     </div>
                 }
             </div>
         </div>
     </div>
+
 
     <!-- Accesos rápidos -->
     <div class="col-md-6 mb-4">
@@ -102,14 +105,14 @@
                     </div>
 
                     <div class="col-6">
-                        <a href="/Atencion/Create" class="btn btn-outline-primary w-100">
+                        <a href="/Enfermera/RegistrarAtencion" class="btn btn-outline-primary w-100">
                             <i class="fas fa-stethoscope me-2"></i>
                             Registrar Atención
                         </a>
                     </div>
 
                     <div class="col-6">
-                        <a href="/Alumno/Create" class="btn btn-outline-success w-100">
+                        <a href="/Enfermera/RegistrarAlumno" class="btn btn-outline-success w-100">
                             <i class="fas fa-user-plus me-2"></i>
                             Registrar Alumno
                         </a>
