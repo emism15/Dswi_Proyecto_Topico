@@ -1,21 +1,99 @@
 ﻿@model Dswi_Proyecto_Topico.Models.ViewModels.RegistrarCitaViewModel;
 
+
+@{
+    ViewData["Title"] = "Registrar Cita";
+}
+
 <h2>Registrar Cita</h2>
-
-<form asp-action="RegistrarCita" method="post">
-
-    <!-- Buscar alumno -->
-    <div class="mb-3">
-        <label>Buscar Alumno (DNI o Código)</label>
-        <div class="input-group">
-            <input type="text" id="txtBusqueda" class="form-control" />
-            <button type="button" id="btnBuscar" class="btn btn-primary">Buscar</button>
-        </div>
+@if (TempData["MensajeExito"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["MensajeExito"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
+}
 
-    <div id="infoAlumno" class="alert alert-info d-none"></div>
+@if (TempData["MensajeError"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["MensajeError"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
 
-    <input type="hidden" asp-for="AlumnoId" />
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-success text-white">
+        Busqueda de Alumno
+    </div>
+    <div class="card-body">
+        <form asp-controller="Citas" asp-action="BuscarAlumno" method="post" class="row g-03">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="col-md-9">
+                <label class="form-label">Codigo del alumno</label>
+                <input asp-for="Codigo" class="form-control" maxlength="10"
+                       oninput="this.value = this.value.replace(/[^i0-9]/g, '')"
+                       placeholder="Ingrese Código del Alumno. Ejemplo: i200000000" />
+
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-outline-success btn-sm w-100">
+                    <i class="bi bi-search me-1"></i>
+                    Buscar
+                </button>
+
+            </div>
+        </form>
+    </div>
+</div>
+@if (!Model.AlumnoEncontrado && ViewData.ModelState.ErrorCount > 0)
+{
+    <div class="alert alert-danger mt-2">
+        El código ingresado no existe en el sistema.
+        <br />
+        <a asp-controller="Enfermera" asp-action="RegistrarAlumno" class="btn btn-primary mt-2">
+            <i class="bi bi-plus-circle me-1"></i>
+            Registrar Alumno
+        </a>
+
+    </div>
+}
+
+    <!--CUERPO-->
+    <form asp-controller="Citas" asp-action="RegistrarCita" method="post">
+        @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="AlumnoId" />
+        <input type="hidden" asp-for="AlumnoEncontrado" />
+
+
+
+
+        <!--Datos del Alumno-->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-success text-white">Datos del Alumno</div>
+            <div class="card-body">
+                <input type="hidden" asp-for="AlumnoId" />
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Codigo</label>
+                        <input asp-for="Codigo" class="form-control" readonly />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Nombre y apellidos Completos</label>
+                        <input asp-for="NombreCompleto" class="form-control" readonly />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">DNI</label>
+                        <input asp-for="DNI" class="form-control" readonly />
+                    </div>
+            
+                </div>
+            </div>
+        </div>
+ 
 
     <!-- Fecha y hora -->
     <div class="row">
@@ -39,31 +117,12 @@
             <option>Emergencia Leve</option>
         </select>
     </div>
-
-    <!-- Motivo -->
-    <div class="mb-3">
-        <label>Motivo</label>
-        <textarea asp-for="MotivoConsulta" class="form-control" required></textarea>
+    <div class="d-flex justify-content-between mt-4">
+        <button type="submit" class="btn btn-outline-success px-4">
+            <i class="bi bi-check-circle me-1"></i>
+            Registrar
+        </button>
     </div>
-
-    <button type="submit" class="btn btn-success">Registrar Cita</button>
 </form>
 
-<script>
-    document.getElementById("btnBuscar").addEventListener("click", function () {
-        const busqueda = document.getElementById("txtBusqueda").value;
 
-        fetch(`/Citas/BuscarAlumno?busqueda=${busqueda}`)
-            .then(r => r.json())
-            .then(data => {
-                if (data) {
-                    document.getElementById("PacienteId").value = data.usuarioId;
-                    document.getElementById("infoAlumno").classList.remove("d-none");
-                    document.getElementById("infoAlumno").innerText =
-                        data.nombreCompleto + " - DNI: " + data.dni;
-                } else {
-                    alert("Alumno no encontrado");
-                }
-            });
-    });
-</script>

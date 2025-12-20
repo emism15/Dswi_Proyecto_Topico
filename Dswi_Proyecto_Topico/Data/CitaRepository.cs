@@ -1,6 +1,7 @@
 ﻿using Dswi_Proyecto_Topico.Models.Entitties;
 using Dswi_Proyecto_Topico.Models.ViewModels;
 using Microsoft.Data.SqlClient;
+using System.Data;
 
 namespace Dswi_Proyecto_Topico.Data
 {
@@ -123,30 +124,40 @@ namespace Dswi_Proyecto_Topico.Data
 
 
         //Registrar nueva cita
-        public async Task<bool> RegistrarCitaAsync(RegistrarCitaViewModel vm)
+        public async Task<int> RegistrarCitaAsync(RegistrarCitaViewModel model)
         {
-            DateTime fechaHora = vm.Fecha.Date + vm.Hora;
-
-            if (await ExisteCruceAsync(fechaHora))
-                return false;
-
-            using (SqlConnection cn = new SqlConnection(_connectionString))
+            using (var conn = new SqlConnection(_connectionString))
             {
-                string sql = @"
-        INSERT INTO Citas (AlumnoId, FechaCita, MotivoConsulta, TipoCita)
-        VALUES (@alumno, @fecha, @motivo, @tipo)";
+                await conn.OpenAsync();
+                using (var tran = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        DateTime fechaCita = model.Fecha.Date + model.Hora;
 
-                SqlCommand cmd = new SqlCommand(sql, cn);
-                cmd.Parameters.AddWithValue("@alumno", vm.AlumnoId);
-                cmd.Parameters.AddWithValue("@fecha", fechaHora);
-                cmd.Parameters.AddWithValue("@motivo", vm.MotivoConsulta);
-                cmd.Parameters.AddWithValue("@tipo", vm.TipoCita);
+                        var cmdSP = new SqlCommand("sp_RegistrarCita", conn, tran);
+                        cmdSP.CommandType = CommandType.StoredProcedure;
 
-                await cn.OpenAsync();
-                await cmd.ExecuteNonQueryAsync();
+                        cmdSP.Parameters.AddWithValue("@AlumnoId", model.AlumnoId);
+                        cmdSP.Parameters.AddWithValue("@FechaCita", fechaCita);
+                        cmdSP.Parameters.AddWithValue("@MotivoConsulta", model.MotivoConsulta);
+                        cmdSP.Parameters.AddWithValue("@TipoCita", model.TipoCita);
+
+                        int citaId = Convert.ToInt32(await cmdSP.ExecuteScalarAsync());
+
+                        tran.Commit();
+                        return citaId;
+                    }
+                    catch
+                    {
+                        tran.Rollback();
+                        throw;
+                    }
+                }
             }
-            return true;
         }
+
+
 
         //Cambiar estado de cita
         public async Task CambiarEstadoAsync(int citaId, string nuevoEstado)
@@ -172,36 +183,66 @@ namespace Dswi_Proyecto_Topico.Data
             }
         }
 
-        //Buscar alumno por DNI o código
-        public async Task<List<Alumno>> BuscarAlumnoAsync(string busqueda)
+
+        public async Task<RegistrarCitaViewModel?> BuscarAlumnoPorCodigoAsync(string codigo)
         {
-            var lista = new List<Alumno>();
-
-            using (SqlConnection cn = new SqlConnection(_connectionString))
+            var sql = @"SELECT AlumnoId, CodAlumno, NombreCompleto, DNI
+                       FROM Alumno 
+                       WHERE LOWER(CodAlumno) = LOWER(@CodAlumno)";
+            using (var conn = new SqlConnection(_connectionString))
+            using (var cmd = new SqlCommand(sql, conn))
             {
-                string sql = @" SELECT AlumnoId, NombreCompleto, CodAlumno, DNI
-                FROM Alumno
-                 WHERE DNI LIKE @b OR CodAlumno LIKE @b";
+                cmd.Parameters.AddWithValue("@CodAlumno", codigo.Trim().ToLower());
 
-                SqlCommand cmd = new SqlCommand(sql, cn);
-                cmd.Parameters.AddWithValue("@b", "%" + busqueda + "%");
-
-                await cn.OpenAsync();
-                var dr = await cmd.ExecuteReaderAsync();
-
-                while (await dr.ReadAsync())
+                await conn.OpenAsync();
+                using (var reader = await cmd.ExecuteReaderAsync())
                 {
-                    lista.Add(new Alumno
+                    if (await reader.ReadAsync())
                     {
-                        AlumnoId = (int)dr["AlumnoId"],
-                        NombreCompleto = dr["NombreCompleto"].ToString(),
-                        Codigo = dr["CodAlumno"].ToString(),
-                        DNI = dr["DNI"].ToString()
-                    });
+                        return new RegistrarCitaViewModel
+                        {
+                            AlumnoId = reader.GetInt32(0),
+                            Codigo = reader.GetString(1).Trim(),
+                            NombreCompleto = reader.GetString(2).Trim(),
+                            DNI = reader.GetString(3).Trim(),                           
+                            AlumnoEncontrado = true
+                        };
+                    }
+                    return null;
                 }
             }
-            return lista;
         }
+
+        ////Buscar alumno por DNI o código
+        //public async Task<List<Alumno>> BuscarAlumnoAsync(string busqueda)
+        //{
+        //    var lista = new List<Alumno>();
+
+        //    using (SqlConnection cn = new SqlConnection(_connectionString))
+        //    {
+        //        string sql = @" SELECT AlumnoId, NombreCompleto, CodAlumno, DNI
+        //        FROM Alumno
+        //         WHERE DNI LIKE @b OR CodAlumno LIKE @b";
+
+        //        SqlCommand cmd = new SqlCommand(sql, cn);
+        //        cmd.Parameters.AddWithValue("@b", "%" + busqueda + "%");
+
+        //        await cn.OpenAsync();
+        //        var dr = await cmd.ExecuteReaderAsync();
+
+        //        while (await dr.ReadAsync())
+        //        {
+        //            lista.Add(new Alumno
+        //            {
+        //                AlumnoId = (int)dr["AlumnoId"],
+        //                NombreCompleto = dr["NombreCompleto"].ToString(),
+        //                Codigo = dr["CodAlumno"].ToString(),
+        //                DNI = dr["DNI"].ToString()
+        //            });
+        //        }
+        //    }
+        //    return lista;
+        //}
 
         // Verificar cruce de horario
         public async Task<bool> ExisteCruceAsync(DateTime fechaHora)
@@ -222,7 +263,6 @@ namespace Dswi_Proyecto_Topico.Data
                 return total > 0;
             }
         }
-
 
 
 
