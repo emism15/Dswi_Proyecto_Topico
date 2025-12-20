@@ -126,7 +126,7 @@
                                 <th><i class="fas fa-hashtag"></i> ID</th>
                                 <th><i class="fas fa-calendar"></i> Fecha/Hora</th>
                                 <th><i class="fas fa-user"></i> Paciente</th>
-                                <th><i class="fas fa-clipboard"></i> Motivo</th>
+                                <th><i class="fas fa-clipboard"></i> Tipo de Cita</th>
                                 <th><i class="fas fa-info-circle"></i> Estado</th>
                                 <th class="text-center">Acciones</th>
                             </tr>
@@ -145,18 +145,7 @@
                                         <small class="text-muted">Codigo: @cita.Alumno.Codigo</small>
                                     </td>
                                     <td>
-                                        <small>
-                                            @if (cita.MotivoConsulta?.Length > 60)
-                                            {
-                                                @cita.MotivoConsulta.Substring(0, 60)
-
-                                                <text>...</text>
-                                            }
-                                            else
-                                            {
-                                                @cita.MotivoConsulta
-                                            }
-                                        </small>
+                                        <small> @cita.TipoCita </small>
                                     </td>
                                     <td>
                                         @if (cita.EstadoCita == "Pendiente")

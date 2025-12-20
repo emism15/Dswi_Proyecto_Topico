@@ -25,7 +25,7 @@ namespace Dswi_Proyecto_Topico.Data
             using (SqlConnection cn = new SqlConnection(_connectionString))
             {
                 string sql = @"
-        SELECT c.CitaId, c.FechaCita, c.MotivoConsulta, c.EstadoCita,
+        SELECT c.CitaId, c.FechaCita, c.MotivoConsulta,c.TipoCita, c.EstadoCita,
             a.AlumnoId, a.NombreCompleto, a.DNI, a.CodAlumno
         FROM Citas c
         INNER JOIN Alumno a ON c.AlumnoId = a.AlumnoId
@@ -45,14 +45,15 @@ namespace Dswi_Proyecto_Topico.Data
                         CitaId = dr.GetInt32(0),
                         FechaCita = dr.GetDateTime(1),
                         MotivoConsulta = dr.GetString(2),
-                        EstadoCita = dr.GetString(3),
+                        TipoCita = dr.GetString(3),
+                        EstadoCita = dr.GetString(4),
 
                         Alumno = new Alumno
                         {
-                            AlumnoId = dr.GetInt32(4),
-                            NombreCompleto = dr.GetString(5),
-                            DNI = dr.GetString(6),
-                            Codigo = dr.GetString(7)
+                            AlumnoId = dr.GetInt32(5),
+                            NombreCompleto = dr.GetString(6),
+                            DNI = dr.GetString(7),
+                            Codigo = dr.GetString(8)
                         }
                     });
                 }
@@ -91,6 +92,7 @@ namespace Dswi_Proyecto_Topico.Data
                         EnfermeraId = dr["EnfermeraId"] as int?,
                         FechaCita = (DateTime)dr["FechaCita"],
                         MotivoConsulta = dr["MotivoConsulta"].ToString(),
+                        TipoCita = dr["TipoCita"].ToString(),
                         EstadoCita = dr["EstadoCita"].ToString()
                     });
                 }
