@@ -63,6 +63,8 @@ namespace Dswi_Proyecto_Topico.Models.Entitties
         [ForeignKey("RolId")]
         public virtual Rol Rol { get; set; }
 
+      
+
         public virtual ICollection<Cita> CitasComoPaciente { get; set; }
         public virtual ICollection<Cita> CitasComoEnfermera { get; set; }
         public virtual ICollection<Receta> RecetasComoPaciente { get; set; }

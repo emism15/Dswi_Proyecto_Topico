@@ -55,20 +55,10 @@ namespace Dswi_Proyecto_Topico.Controllers
         {
             await citaRepo.ActualizarEstadoAsync(id, cita.EstadoCita);
             TempData["MensajeExito"] = $"Estado de la cita #{id} actualizado a {cita.EstadoCita}.";
-            return RedirectToAction(nameof(Citas));
+            return RedirectToAction(nameof(DetalleCita), new { id });
+
         }
 
-
-
-
-
-        //// POST: Citas/CambiarEstado
-        //[HttpPost]
-        //public async Task<IActionResult> CambiarEstado(int id, string estado)
-        //{
-        //    await citaRepo.CambiarEstadoAsync(id, estado);
-        //    return RedirectToAction("Index");
-        //}
 
         // GET: Citas/Citas
         public async Task<IActionResult> Citas(string estado)
