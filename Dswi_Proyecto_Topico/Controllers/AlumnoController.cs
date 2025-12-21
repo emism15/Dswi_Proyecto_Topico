@@ -15,31 +15,64 @@ namespace Dswi_Proyecto_Topico.Controllers
             this.alumnoRepo = alumnoRepo;
         }
 
+        // GET: Dashboard Alumno
         public async Task<IActionResult> Index()
         {
+         // Usuario logueado
             int usuarioId = HttpContext.Session.GetInt32("UsuarioId").Value;
 
+            //  Obtener AlumnoId DESDE BD
+            int alumnoId = await alumnoRepo.ObtenerAlumnoIdPorUsuarioAsync(usuarioId);
+
+            // Obtener próxima cita
+            var proximaCita = await citaRepo.ObtenerProximaCitaAsync(alumnoId);
+
+            // Armar ViewModel
+            var vm = new DashboardAlumnoViewModel
+            {
+                CitasPendientes = await citaRepo.ContarCitasPorEstadoAsync(alumnoId, "Pendiente"),
+                CitasAtendidas = await citaRepo.ContarCitasPorEstadoAsync(alumnoId, "Atendida"),
+                ProximaCita = proximaCita,
+                DiasParaProximaCita = proximaCita != null
+                    ? (proximaCita.FechaCita.Date - DateTime.Now.Date).Days
+                    : 0
+            };
+
+            return View(vm);
+        }
+
+
+        // GET: citas de alumno con filtro
+        public async Task<IActionResult> Citas(string estado)
+        {
+            int usuarioId = HttpContext.Session.GetInt32("UsuarioId").Value;
             int alumnoId = await alumnoRepo.ObtenerAlumnoIdPorUsuarioAsync(usuarioId);
 
             var citas = await citaRepo.ListarCitasPorAlumnoAsync(alumnoId);
 
-            var model = new DashboardAlumnoViewModel
+            // Aplicar filtro si existe
+            if (!string.IsNullOrEmpty(estado))
             {
-                CitasPendientes = citas.Count(c => c.EstadoCita == "Pendiente"),
-                CitasAtendidas = citas.Count(c => c.EstadoCita == "Atendida"),
+                citas = citas
+                    .Where(c => c.EstadoCita.Equals(estado, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
 
-                ProximaCita = citas
-                    .Where(c => c.EstadoCita == "Pendiente" && c.FechaCita >= DateTime.Now)
-                    .OrderBy(c => c.FechaCita)
-                    .FirstOrDefault(),
+            ViewBag.EstadoFiltro = estado;
 
-                HistorialCitas = citas
-                    .OrderByDescending(c => c.FechaCita)
-                    .Take(5)
-                    .ToList()
+            var model = new CitasAlumnoViewModel
+            {
+                Pendientes = citas.Count(c => c.EstadoCita == "Pendiente"),
+                Atendidas = citas.Count(c => c.EstadoCita == "Atendida"),
+                Canceladas = citas.Count(c => c.EstadoCita == "Cancelada"),
+                Citas = citas.OrderByDescending(c => c.FechaCita).ToList()
             };
 
             return View(model);
         }
+
+       
+
+
     }
 }

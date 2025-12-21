@@ -313,6 +313,64 @@ namespace Dswi_Proyecto_Topico.Data
             return lista;
         }
 
+        // Obtener próxima cita pendiente por alumno
+        public async Task<Cita?> ObtenerProximaCitaAsync(int alumnoId)
+        {
+            using (SqlConnection cn = new SqlConnection(_connectionString))
+            {
+                string sql = @"
+              SELECT TOP 1
+              CitaId,
+             FechaCita,
+             MotivoConsulta,
+              EstadoCita
+              FROM Citas
+             WHERE AlumnoId = @alumnoId
+             AND EstadoCita = 'Pendiente'
+             AND CAST(FechaCita AS DATE) >= CAST(GETDATE() AS DATE)
+              ORDER BY FechaCita ASC";
+                 SqlCommand cmd = new SqlCommand(sql, cn);
+                cmd.Parameters.AddWithValue("@alumnoId", alumnoId);
+
+                await cn.OpenAsync();
+                var dr = await cmd.ExecuteReaderAsync();
+
+                if (await dr.ReadAsync())
+                {
+                    return new Cita
+                    {
+                        CitaId = dr.GetInt32(0),
+                        FechaCita = dr.GetDateTime(1),
+                        MotivoConsulta = dr.GetString(2),
+                        EstadoCita = dr.GetString(3)
+                    };
+                }
+            }
+
+            return null;
+        }
+
+
+        public async Task<int> ContarCitasPorEstadoAsync(int alumnoId, string estado)
+        {
+            using (SqlConnection cn = new SqlConnection(_connectionString))
+            {
+                string sql = @"
+            SELECT COUNT(*)
+            FROM Citas
+            WHERE AlumnoId = @alumnoId
+              AND EstadoCita = @estado";
+
+                SqlCommand cmd = new SqlCommand(sql, cn);
+                cmd.Parameters.AddWithValue("@alumnoId", alumnoId);
+                cmd.Parameters.AddWithValue("@estado", estado);
+
+                await cn.OpenAsync();
+                return (int)await cmd.ExecuteScalarAsync();
+            }
+        }
+
+
 
 
     }
