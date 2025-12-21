@@ -1,6 +1,9 @@
 ﻿using Dswi_Proyecto_Topico.Data;
 using Dswi_Proyecto_Topico.Helpers;
 using Dswi_Proyecto_Topico.Models.ViewModels;
+using Dswi_Proyecto_Topico.Services;
+using Dswi_Proyecto_Topico.Services.Interface;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Data.SqlClient;
@@ -14,14 +17,29 @@ namespace Dswi_Proyecto_Topico.Controllers
          private readonly AtencionRepository atencionRepository;
         private readonly ReporteAtencionRepository reporteAtencionRepository;
         private readonly HistorialReporteRepository historialReporteRepository;
-       
 
-        public EnfermeraController(AlumnoRepository alumnoRepository, AtencionRepository atencionRepository, ReporteAtencionRepository reporteAtencionRepository /*EnfermeraRepository repo*/, HistorialReporteRepository historialReporteRepository )
+        private readonly UserManager<ApplicationUser> userManager;
+        private readonly IEmailService emailService;
+        private readonly RoleManager<IdentityRole> roleManager;
+
+
+
+
+        public EnfermeraController(AlumnoRepository alumnoRepository, AtencionRepository atencionRepository, 
+                                    ReporteAtencionRepository reporteAtencionRepository /*EnfermeraRepository repo*/, 
+                                    HistorialReporteRepository historialReporteRepository, EmailService emailService,
+                                    UserManager<ApplicationUser> userManager,
+                                    RoleManager<IdentityRole> roleManager)
         {
             this.alumnoRepository = alumnoRepository;
             this.atencionRepository = atencionRepository;
             this.reporteAtencionRepository = reporteAtencionRepository;
             this.historialReporteRepository = historialReporteRepository;
+            this.emailService = emailService;
+            this.userManager = userManager;
+            this.roleManager = roleManager;
+
+            
         }
 
 
@@ -61,6 +79,44 @@ namespace Dswi_Proyecto_Topico.Controllers
             }
 
             await alumnoRepository.AgregarAlumnoAsync(alumno);
+
+            //Usuario automatico
+            var passwordTemporal = PasswordGenerator.Generar();
+            var user = new ApplicationUser
+            {
+                UserName = alumno.Codigo,
+                Email = alumno.Correo,
+                Codigo = alumno.Codigo,
+                DebeCambiarPassword = true
+            };
+
+            var result = await userManager.CreateAsync(user, passwordTemporal);
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError("", error.Description);
+                }
+                return View(alumno);
+            }
+
+            if (!await roleManager.RoleExistsAsync("Alumno"))
+            {
+                await roleManager.CreateAsync(new IdentityRole("Alumno"));
+            }
+            await userManager.AddToRoleAsync(user, "Alumno");
+
+            await emailService.EnviarCredencialesAsync(
+
+                alumno.Correo,
+                alumno.Codigo,
+                passwordTemporal
+                );
+
+
+            TempData["AlumnoId"] = alumno.AlumnoId;
+            TempData["CodAlumno"] = alumno.Codigo;
+
             TempData["Mensaje"] = "Alumno registrado correctamente";
             return RedirectToAction(nameof(RegistrarAtencion));
         }

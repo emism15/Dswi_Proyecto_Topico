@@ -1,0 +1,135 @@
+﻿@model Dswi_Proyecto_Topico.Models.ViewModels.DashboardAlumnoViewModel
+@{
+    ViewData["Title"] = "Panel del Alumno";
+}
+
+<div class="container mt-4">
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-success">
+                <i class="fas fa-user-graduate me-2"></i>
+                Bienvenido Alumno
+            </h2>
+            <p class="text-muted mb-0">Panel de control personal</p>
+        </div>
+        <div class="text-muted">
+            <i class="fas fa-calendar-day me-1"></i>
+            @DateTime.Now.ToString("dddd, dd MMMM yyyy",
+            new System.Globalization.CultureInfo("es-ES"))
+        </div>
+    </div>
+
+    <!-- TARJETAS DE RESUMEN -->
+    <div class="row mb-4">
+
+        <!-- Citas Pendientes -->
+        <div class="col-md-6 mb-3">
+            <div class="card shadow-sm border-0 h-100 card-hover">
+                <div class="card-body text-center">
+                    <div class="icon-circle bg-success-soft mb-3">
+                        <i class="fas fa-calendar-alt text-success fa-2x"></i>
+                    </div>
+                    <h2 class="fw-bold">@Model.CitasPendientes</h2>
+                    <p class="text-muted mb-0">Citas Pendientes</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Citas Atendidas -->
+        <div class="col-md-6 mb-3">
+            <div class="card shadow-sm border-0 h-100 card-hover">
+                <div class="card-body text-center">
+                    <div class="icon-circle bg-primary-soft mb-3">
+                        <i class="fas fa-check-circle text-primary fa-2x"></i>
+                    </div>
+                    <h2 class="fw-bold">@Model.CitasAtendidas</h2>
+                    <p class="text-muted mb-0">Citas Atendidas</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ACCESOS RÁPIDOS -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white border-0">
+            <h5 class="fw-bold mb-0 text-secondary">
+                <i class="fas fa-bolt me-2"></i>
+                Accesos Rápidos
+            </h5>
+        </div>
+
+        <div class="card-body">
+            <div class="row text-center">
+
+                <!-- Citas -->
+                <div class="col-md-4 mb-3">
+                    <a asp-action="MisCitas"
+                       class="btn btn-outline-success w-100 p-4 btn-hover">
+                        <i class="fas fa-calendar-check fa-2x mb-2 d-block"></i>
+                        <span class="fw-semibold">Citas Programadas</span>
+                    </a>
+                </div>
+
+                <!-- Historial -->
+                <div class="col-md-4 mb-3">
+                    <a asp-action="HistorialAtenciones"
+                       class="btn btn-outline-primary w-100 p-4 btn-hover">
+                        <i class="fas fa-file-medical fa-2x mb-2 d-block"></i>
+                        <span class="fw-semibold">Historial de Atenciones</span>
+                    </a>
+                </div>
+
+                <!-- Notificaciones -->
+                <div class="col-md-4 mb-3">
+                    <a asp-action="Notificaciones"
+                       class="btn btn-outline-warning w-100 p-4 btn-hover">
+                        <i class="fas fa-bell fa-2x mb-2 d-block"></i>
+                        <span class="fw-semibold">Notificaciones</span>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+
+<!-- ESTILOS EXTRA -->
+<style>
+    .card-hover {
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .card-hover:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 25px rgba(0,0,0,.1);
+    }
+
+    .btn-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(0,0,0,.15);
+    }
+
+    .icon-circle {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: auto;
+    }
+
+    .bg-success-soft {
+        background-color: #e6f4ea;
+    }
+
+    .bg-primary-soft {
+        background-color: #e7f1ff;
+    }
+</style>

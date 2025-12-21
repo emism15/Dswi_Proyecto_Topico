@@ -1,0 +1,161 @@
+﻿@model Dswi_Proyecto_Topico.Models.ViewModels.LoginAlumnoModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Ingreso Alumno";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .login-wrapper {
+        min-height: 85vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .login-card {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 45px 40px;
+        width: 100%;
+        max-width: 420px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 35px;
+    }
+
+    .login-header i {
+        font-size: 3.8rem;
+        color: #667eea;
+        margin-bottom: 15px;
+    }
+
+    .login-header h2 {
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 5px;
+    }
+
+    .login-header p {
+        color: #64748b;
+        margin: 0;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #475569;
+    }
+
+    .form-control {
+        border-radius: 10px;
+        padding: 12px;
+        border: 2px solid #e2e8f0;
+    }
+
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102,126,234,.15);
+    }
+
+    .btn-login {
+        width: 100%;
+        padding: 13px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        border: none;
+        font-weight: 600;
+        font-size: 1.05rem;
+        margin-top: 10px;
+        transition: all .3s;
+    }
+
+    .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(102,126,234,.4);
+    }
+</style>
+
+
+<div class="login-wrapper">
+    <div class="login-card">
+
+        <div class="login-header">
+            <i class="fas fa-hospital-alt"></i>
+            <h2>Tópico Médico</h2>
+            <p>Sistema de Gestión Médica</p>
+        </div>
+
+        @if (TempData["Mensaje"] != null)
+        {
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle me-1"></i>
+                @TempData["Mensaje"]
+            </div>
+        }
+
+        <form asp-action="LoginAlumno" method="post">
+
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="Usuario" class="form-label">
+                    <i class="fas fa-user me-1"></i> Usuario
+                </label>
+                <input asp-for="Usuario" class="form-control" placeholder="Ingrese su usuario" autofocus />
+                <span asp-validation-for="Usuario" class="text-danger"></span>
+            </div>
+
+            <div class="mb-4">
+    <label asp-for="Password" class="form-label">
+        <i class="fas fa-lock me-1"></i> Contraseña
+    </label>
+
+    <input asp-for="Password"
+           id="passwordInput"
+           type="password"
+           class="form-control"
+           placeholder="Ingrese su contraseña" />
+
+    <span asp-validation-for="Password" class="text-danger"></span>
+
+    <div class="form-check mt-2">
+        <input class="form-check-input"
+               type="checkbox"
+               id="togglePassword"
+               onclick="togglePasswordVisibility()">
+        <label class="form-check-label text-muted" for="togglePassword">
+            Ver contraseña
+        </label>
+    </div>
+</div>
+
+
+            <button type="submit" class="btn btn-login">
+                <i class="fas fa-sign-in-alt me-2"></i> Ingresar
+            </button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+    function togglePasswordVisibility() {
+        const passwordInput = document.getElementById("passwordInput");
+        passwordInput.type = passwordInput.type === "password" ? "text" : "password";
+    }
+</script>
+
+}

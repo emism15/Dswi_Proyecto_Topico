@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Dswi_Proyecto_Topico.Helpers;
 using Dswi_Proyecto_Topico.Models.ViewModels;
+using Microsoft.AspNetCore.Identity;
 
 
 namespace Dswi_Proyecto_Topico.Controllers
@@ -12,9 +13,14 @@ namespace Dswi_Proyecto_Topico.Controllers
     {
         private readonly AuthService _authService;
 
-        public AuthController(AuthService authService)
+        private readonly UserManager<ApplicationUser> userManager;
+        private readonly SignInManager<ApplicationUser> signInManager;
+
+        public AuthController(AuthService authService, UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
         {
             _authService = authService;
+            this.userManager = userManager;
+            this.signInManager = signInManager;
         }
 
         // GET: Auth/Login
@@ -133,6 +139,96 @@ namespace Dswi_Proyecto_Topico.Controllers
             <p><strong>Hash SHA256:</strong></p>
             <textarea style='width:100%; height:80px; font-family:monospace;'>{hash}</textarea>
         ", "text/html");
+        }
+
+
+        [HttpGet]
+        public IActionResult LoginAlumno()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> LoginAlumno(LoginAlumnoModel model)
+           {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var user = await userManager.FindByNameAsync(model.Usuario);
+
+            if (user == null)
+            {
+                ModelState.AddModelError("", "Usuario no existe");
+                return View(model);
+            }
+
+            var result = await signInManager.PasswordSignInAsync(
+                user.UserName,
+                model.Password,
+                false,
+                false
+            );
+
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError("", "Credenciales incorrectas");
+                return View(model);
+            }
+
+            if (user.DebeCambiarPassword)
+            {
+                return RedirectToAction("CambiarPassword");
+            }
+
+            return RedirectToAction("Index", "Alumno");
+        }
+
+        [HttpGet]
+        public IActionResult CambiarPassword()
+        {
+            return View();
+        }
+
+
+        [HttpPost]
+
+        public async Task<IActionResult> CambiarPassword(CambiarPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var user = await userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return RedirectToAction("LoginAlumno");
+            }
+
+            var result = await userManager.ChangePasswordAsync(
+                user,
+                model.PasswordActual,
+                model.PasswordNueva
+            );
+
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                    ModelState.AddModelError("", error.Description);
+
+                return View(model);
+            }
+
+            user.DebeCambiarPassword = false;
+            await userManager.UpdateAsync(user);
+
+            // 🔒 Cerrar sesión
+            await signInManager.SignOutAsync();
+
+            // Mensaje para el login
+            TempData["Mensaje"] = "Contraseña cambiada exitosamente. Inicie sesión con su nueva contraseña.";
+
+            // 🔁 Volver al login
+            return RedirectToAction("LoginAlumno", "Auth");
         }
     }
 }
