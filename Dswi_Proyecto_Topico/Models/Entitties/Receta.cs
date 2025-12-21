@@ -12,7 +12,7 @@ namespace Dswi_Proyecto_Topico.Models.Entitties
         public int CitaId { get; set; }
 
         [Required]
-        public int PacienteId { get; set; }
+        public int AlumnoId { get; set; }
 
         [Required]
         public int EnfermeraId { get; set; }
@@ -32,12 +32,12 @@ namespace Dswi_Proyecto_Topico.Models.Entitties
         [ForeignKey("CitaId")]
         public virtual Cita Cita { get; set; }
 
-        [ForeignKey("PacienteId")]
-        public virtual Usuario Paciente { get; set; }
+        [ForeignKey("AlumnoId")]
+        public Usuario Alumno { get; set; }
 
         [ForeignKey("EnfermeraId")]
-        public virtual Usuario Enfermera { get; set; }
-
+        public Usuario Enfermera { get; set; }
         public virtual ICollection<DetalleReceta> DetallesReceta { get; set; }
     }
+
 }

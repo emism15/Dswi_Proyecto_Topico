@@ -1,6 +1,6 @@
-﻿using Dswi_Proyecto_Topico.Data;
-using Dswi_Proyecto_Topico.Helpers;
+﻿using Dswi_Proyecto_Topico.Helpers;
 using Dswi_Proyecto_Topico.Models.ViewModels;
+using Dswi_Proyecto_Topico.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,14 +10,16 @@ namespace Dswi_Proyecto_Topico.Controllers
     // ========== AuthController - Login y Autenticación ==========
     public class AuthController : Controller
     {
-        private readonly AuthRepository _authRepo;
+        private readonly IAuthService _authService;
+        private readonly IAlertaService _alertaService;
 
-        public AuthController(AuthRepository authRepo)
+        public AuthController(IAuthService authService, IAlertaService alertaService)
         {
-            _authRepo = authRepo;
+            _authService = authService;
+            _alertaService = alertaService;
         }
 
-        //GET: Auth/Login
+        // GET: Auth/Login
         [HttpGet]
         public IActionResult Login()
         {
@@ -29,8 +31,7 @@ namespace Dswi_Proyecto_Topico.Controllers
             return View();
         }
 
-        //POST: Auth/Login
-
+        // POST: Auth/Login
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model)
@@ -38,8 +39,7 @@ namespace Dswi_Proyecto_Topico.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            var usuario = await _authRepo.AutenticarAsync(
-                model.NombreUsuario, model.Contraseña);
+            var usuario = await _authService.AutenticarAsync(model.NombreUsuario, model.Contraseña);
 
             if (usuario == null)
             {
@@ -56,12 +56,14 @@ namespace Dswi_Proyecto_Topico.Controllers
 
             // Si debe cambiar contraseña
             if (usuario.DebecambiarContraseña)
+            {
+                TempData["Mensaje"] = "Por seguridad, debe cambiar su contraseña";
                 return RedirectToAction("CambiarContraseña");
+            }
 
             // Redirigir según rol
             return RedirectToAction("Index", GetDashboardByRole());
         }
-
 
         // GET: Auth/CambiarContraseña
         [HttpGet]
@@ -69,20 +71,22 @@ namespace Dswi_Proyecto_Topico.Controllers
         {
             if (!HttpContext.Session.IsAuthenticated())
                 return RedirectToAction("Login");
+
             return View();
         }
 
         // POST: Auth/CambiarContraseña
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CambiarContraseña(CambioContraseñaViewModel model)
         {
             if (!ModelState.IsValid)
                 return View(model);
 
-            int usuarioId = HttpContext.Session.GetUsuarioId().Value;
+            var usuarioId = HttpContext.Session.GetUsuarioId().Value;
 
-            var resultado = await _authRepo.CambiarContraseñaAsync(
-                 usuarioId,
+            var resultado = await _authService.CambiarContraseñaAsync(
+                usuarioId,
                 model.ContraseñaActual,
                 model.ContraseñaNueva);
 
@@ -107,12 +111,11 @@ namespace Dswi_Proyecto_Topico.Controllers
         private string GetDashboardByRole()
         {
             var rol = HttpContext.Session.GetNombreRol();
-
             return rol switch
             {
                 "Administrador" => "Admin",
                 "Enfermera" => "Enfermera",
-                "Paciente" => "Paciente",
+                "Alumno" => "Alumno",
                 _ => "Auth"
             };
         }
@@ -134,6 +137,5 @@ namespace Dswi_Proyecto_Topico.Controllers
             <textarea style='width:100%; height:100px; font-family:monospace;'>{hash}</textarea>
         ", "text/html");
         }
-
     }
 }

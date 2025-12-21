@@ -1,0 +1,128 @@
+﻿using Dswi_Proyecto_Topico.Service.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using Dswi_Proyecto_Topico.Data;
+using Dswi_Proyecto_Topico.Helpers;
+using Dswi_Proyecto_Topico.Models.Entitties;
+using Dswi_Proyecto_Topico.Models.ViewModels;
+
+namespace Dswi_Proyecto_Topico.Service
+{
+
+
+    // ========== CitaService ==========
+    public class CitaService : ICitaService
+    {
+        private readonly TopicoDbContext _context;
+
+        public CitaService(TopicoDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<List<Cita>> ObtenerTodasAsync()
+        {
+            return await _context.Citas
+                .Include(c => c.Alumno)
+                .Include(c => c.Enfermera)
+                .OrderByDescending(c => c.FechaCita)
+                .ToListAsync();
+        }
+
+        public async Task<List<Cita>> ObtenerPorAlumnoAsync(int alumnoId, string estado = null)
+        {
+            var query = _context.Citas
+                .Include(c => c.Alumno)
+                .Where(c => c.AlumnoId == alumnoId);
+
+            if (!string.IsNullOrEmpty(estado))
+                query = query.Where(c => c.EstadoCita == estado);
+
+            return await query.OrderByDescending(c => c.FechaCita).ToListAsync();
+        }
+
+
+        public async Task<List<Cita>> ObtenerPorEnfermeraAsync(int enfermeraId)
+        {
+            return await _context.Citas
+                .Include(c => c.Alumno)
+                .Where(c => c.EnfermeraId == enfermeraId)
+                .OrderByDescending(c => c.FechaCita)
+                .ToListAsync();
+        }
+
+        public async Task<List<Cita>> ObtenerProximasAsync(int diasAnticipacion)
+        {
+            var fechaLimite = DateTime.Now.AddDays(diasAnticipacion);
+            return await _context.Citas
+                .Include(c => c.Alumno)
+                .Where(c => c.FechaCita <= fechaLimite &&
+                           c.FechaCita >= DateTime.Now &&
+                           c.EstadoCita == "Pendiente")
+                .OrderBy(c => c.FechaCita)
+                .ToListAsync();
+        }
+
+        public async Task<Cita> ObtenerPorIdAsync(int citaId)
+        {
+            return await _context.Citas
+                .Include(c => c.Alumno)
+                .Include(c => c.Enfermera)
+                .FirstOrDefaultAsync(c => c.CitaId == citaId);
+        }
+
+        public async Task<bool> CrearAsync(CitaViewModel model, int usuarioRegistroId)
+        {
+            var cita = new Cita
+            {
+                AlumnoId = model.AlumnoId,
+                FechaCita = model.FechaCita,
+                MotivoConsulta = model.MotivoConsulta,
+                Observaciones = model.Observaciones,
+                EstadoCita = "Pendiente"
+            };
+
+            _context.Citas.Add(cita);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+
+        public async Task<bool> AtenderAsync(AtenderCitaViewModel model, int enfermeraId)
+        {
+            var cita = await _context.Citas.FindAsync(model.CitaId);
+            if (cita == null) return false;
+
+            // Crear JSON de signos vitales
+            var signosVitales = JsonSerializer.Serialize(new
+            {
+                temperatura = model.Temperatura,
+                presionArterial = model.PresionArterial,
+                pulso = model.Pulso,
+                saturacionO2 = model.SaturacionO2,
+                frecuenciaRespiratoria = model.FrecuenciaRespiratoria
+            });
+
+            cita.EnfermeraId = enfermeraId;
+            cita.Diagnostico = model.Diagnostico;
+            cita.Observaciones = model.Observaciones;
+            cita.SignosVitales = signosVitales;
+            cita.EstadoCita = "Atendida";
+            cita.FechaAtencion = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> CancelarAsync(int citaId)
+        {
+            var cita = await _context.Citas.FindAsync(citaId);
+            if (cita == null) return false;
+
+            cita.EstadoCita = "Cancelada";
+            await _context.SaveChangesAsync();
+            return true;
+        }
+    }
+}
+

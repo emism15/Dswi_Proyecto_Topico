@@ -67,6 +67,6 @@ namespace Dswi_Proyecto_Topico.Models.Entitties
         public virtual ICollection<Cita> CitasComoEnfermera { get; set; }
         public virtual ICollection<Receta> RecetasComoPaciente { get; set; }
         public virtual ICollection<Receta> RecetasComoEnfermera { get; set; }
-
+        public string PasswordHash { get; internal set; }
     }
 }
