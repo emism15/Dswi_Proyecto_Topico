@@ -1,6 +1,7 @@
 ﻿using Dswi_Proyecto_Topico.Models.Entitties;
 using Dswi_Proyecto_Topico.Models.ViewModels;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using System.Data;
 
 namespace Dswi_Proyecto_Topico.Data
@@ -216,35 +217,6 @@ namespace Dswi_Proyecto_Topico.Data
             return null; // si no se encuentra la cita
         }
 
-
-
-
-
-        ////Cambiar estado de cita
-        //public async Task CambiarEstadoAsync(int citaId, string nuevoEstado)
-        //{
-        //    string[] estadosValidos = { "Pendiente", "Atendida", "Cancelada" };
-
-        //    if (!estadosValidos.Contains(nuevoEstado))
-        //        throw new Exception("Estado inválido");
-
-        //    using (SqlConnection cn = new SqlConnection(_connectionString))
-        //    {
-        //        string sql = @"
-        //UPDATE Citas
-        //SET EstadoCita = @estado
-        //WHERE CitaId = @id";
-
-        //        SqlCommand cmd = new SqlCommand(sql, cn);
-        //        cmd.Parameters.AddWithValue("@estado", nuevoEstado);
-        //        cmd.Parameters.AddWithValue("@id", citaId);
-
-        //        await cn.OpenAsync();
-        //        await cmd.ExecuteNonQueryAsync();
-        //    }
-        //}
-
-
         public async Task<RegistrarCitaViewModel?> BuscarAlumnoPorCodigoAsync(string codigo)
         {
             var sql = @"SELECT AlumnoId, CodAlumno, NombreCompleto, DNI
@@ -292,6 +264,53 @@ namespace Dswi_Proyecto_Topico.Data
 
                 return total > 0;
             }
+        }
+
+
+        // Listar citas por alumno
+        public async Task<List<Cita>> ListarCitasPorAlumnoAsync(int alumnoId)
+        {
+            var lista = new List<Cita>();
+
+            using (SqlConnection cn = new SqlConnection(_connectionString))
+            {
+                string sql = @"
+        SELECT 
+            c.CitaId, c.FechaCita, c.MotivoConsulta, c.TipoCita, c.EstadoCita,
+            a.AlumnoId, a.NombreCompleto, a.DNI, a.CodAlumno
+        FROM Citas c
+        INNER JOIN Alumno a ON c.AlumnoId = a.AlumnoId
+        WHERE c.AlumnoId = @alumnoId
+        ORDER BY c.FechaCita DESC";
+
+                SqlCommand cmd = new SqlCommand(sql, cn);
+                cmd.Parameters.AddWithValue("@alumnoId", alumnoId);
+
+                await cn.OpenAsync();
+                var dr = await cmd.ExecuteReaderAsync();
+
+                while (await dr.ReadAsync())
+                {
+                    lista.Add(new Cita
+                    {
+                        CitaId = dr.GetInt32(0),
+                        FechaCita = dr.GetDateTime(1),
+                        MotivoConsulta = dr.GetString(2),
+                        TipoCita = dr.GetString(3),
+                        EstadoCita = dr.GetString(4),
+
+                        Alumno = new Alumno
+                        {
+                            AlumnoId = dr.GetInt32(5),
+                            NombreCompleto = dr.GetString(6),
+                            DNI = dr.GetString(7),
+                            Codigo = dr.GetString(8)
+                        }
+                    });
+                }
+            }
+
+            return lista;
         }
 
 

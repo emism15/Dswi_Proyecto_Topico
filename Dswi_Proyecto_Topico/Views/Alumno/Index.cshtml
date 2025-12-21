@@ -1,0 +1,85 @@
+﻿@model Dswi_Proyecto_Topico.Models.ViewModels.DashboardAlumnoViewModel;
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2><i class="fas fa-user-injured me-2"></i>Bienvenido(a) , @Context.Session.GetString("NombreCompleto")</h2>
+        <p class="text-muted">Panel de control del paciente</p>
+    </div>
+    <div>
+        <span class="text-muted">
+            <i class="fas fa-calendar me-1"></i>
+            @DateTime.Now.ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("es-ES"))
+        </span>
+    </div>
+</div>
+
+
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card border-warning">
+            <div class="card-body text-center">
+                <h3>@Model.CitasPendientes</h3>
+                <p>Citas Pendientes</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-success">
+            <div class="card-body text-center">
+                <h3>@Model.CitasAtendidas</h3>
+                <p>Citas Atendidas</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        Próxima Cita
+    </div>
+    <div class="card-body">
+        @if (Model.ProximaCita != null)
+        {
+            <p><strong>Fecha:</strong> @Model.ProximaCita.FechaCita.ToString("dd/MM/yyyy HH:mm")</p>
+            <p><strong>Motivo:</strong> @Model.ProximaCita.MotivoConsulta</p>
+            <p><strong>Estado:</strong> @Model.ProximaCita.EstadoCita</p>
+
+            <a asp-action="DetalleCita" asp-route-id="@Model.ProximaCita.CitaId"
+               class="btn btn-primary btn-sm">
+                Ver Detalle
+            </a>
+        }
+        else
+        {
+            <p>No tienes citas programadas.</p>
+        }
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-secondary text-white">
+        Historial Reciente
+    </div>
+    <div class="card-body">
+        @if (Model.HistorialCitas.Any())
+        {
+            <ul class="list-group">
+                @foreach (var cita in Model.HistorialCitas)
+                {
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>@cita.FechaCita.ToString("dd/MM/yyyy") - @cita.MotivoConsulta</span>
+                        <a asp-action="DetalleCita" asp-route-id="@cita.CitaId"
+                           class="btn btn-outline-primary btn-sm">
+                            Ver
+                        </a>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p>No hay historial de citas.</p>
+        }
+    </div>
+</div>

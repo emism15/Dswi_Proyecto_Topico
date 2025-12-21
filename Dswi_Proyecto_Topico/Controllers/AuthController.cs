@@ -112,7 +112,7 @@ namespace Dswi_Proyecto_Topico.Controllers
             {
                 "Administrador" => "Admin",
                 "Enfermera" => "Enfermera",
-                "Paciente" => "Paciente",
+                "Paciente" => "Alumno",
                 _ => "Auth"
             };
         }

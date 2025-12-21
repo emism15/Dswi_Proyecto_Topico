@@ -75,7 +75,30 @@ namespace Dswi_Proyecto_Topico.Data
                 await cmd.ExecuteNonQueryAsync();
             }
         }
-     
+
+
+        // Obtener AlumnoId a partir del UsuarioId
+        public async Task<int> ObtenerAlumnoIdPorUsuarioAsync(int usuarioId)
+        {
+            using (SqlConnection cn = new SqlConnection(_connectionString))
+            {
+                string sql = "SELECT AlumnoId FROM Alumno WHERE UsuarioId = @usuarioId";
+
+                SqlCommand cmd = new SqlCommand(sql, cn);
+                cmd.Parameters.AddWithValue("@usuarioId", usuarioId);
+
+                await cn.OpenAsync();
+                var result = await cmd.ExecuteScalarAsync();
+
+                if (result == null)
+                    throw new Exception("El usuario no está asociado a ningún alumno");
+
+                return Convert.ToInt32(result);
+            }
+        }
+
+
+
 
     }
 }
