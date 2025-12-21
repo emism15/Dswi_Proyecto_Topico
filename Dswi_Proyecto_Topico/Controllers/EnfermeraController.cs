@@ -25,6 +25,22 @@ namespace Dswi_Proyecto_Topico.Controllers
         }
 
 
+        //[HttpGet]
+        /*public IActionResult Index()
+        {
+            // Seguridad básica
+            if (!HttpContext.Session.IsAuthenticated())
+                return RedirectToAction("Login", "Auth");
+
+            // Validar rol
+            if (HttpContext.Session.GetNombreRol() != "Enfermera")
+                return RedirectToAction("Login", "Auth");
+
+            //DashboardEnfermeraViewModel vm = _repo.ObtenerDashboard();
+
+            return View(vm);
+        }*/
+
         [HttpGet]
         public IActionResult RegistrarAlumno()
         {
