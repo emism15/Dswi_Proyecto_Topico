@@ -1,0 +1,131 @@
+﻿@model Dswi_Proyecto_Topico.Models.ViewModels.RegistrarCitaViewModel;
+
+
+@{
+    ViewData["Title"] = "Registrar Cita";
+}
+
+<h2>Registrar Cita</h2>
+@if (TempData["MensajeExito"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["MensajeExito"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["MensajeError"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["MensajeError"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-success text-white">
+        <strong>Buscar Alumno</strong>
+    </div>
+    <div class="card-body">
+        <form asp-controller="Citas" asp-action="BuscarAlumno" method="post" class="row g-03">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="col-md-9">
+                <label class="form-label"><strong>Codigo de Alumno:</strong></label>
+                <input asp-for="Codigo" class="form-control" maxlength="10"
+                       oninput="this.value = this.value.replace(/[^i0-9]/g, '')"
+                       placeholder="Ingrese Código del Alumno. Ejemplo: i200000000" />
+
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-outline-success btn-sm w-100">
+                    <i class="bi bi-search me-1"></i>
+                    Buscar
+                </button>
+
+            </div>
+        </form>
+    </div>
+</div>
+@if (!Model.AlumnoEncontrado && ViewData.ModelState.ErrorCount > 0)
+{
+    <div class="alert alert-danger mt-2">
+        El código ingresado no existe en el sistema.
+        <br />
+        <a asp-controller="Enfermera" asp-action="RegistrarAlumno" class="btn btn-primary mt-2">
+            <i class="bi bi-plus-circle me-1"></i>
+            Registrar Alumno
+        </a>
+
+    </div>
+}
+
+    <!--CUERPO-->
+    <form asp-controller="Citas" asp-action="RegistrarCita" method="post">
+        @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="AlumnoId" />
+        <input type="hidden" asp-for="AlumnoEncontrado" />
+
+
+
+
+        <!--Datos del Alumno-->
+        <div class="card shadow-sm mb-4">
+        <div class="card-header bg-success text-white"><strong>Datos del Alumno</strong></div>
+            <div class="card-body">
+                <input type="hidden" asp-for="AlumnoId" />
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                    <label class="form-label"><strong>Codigo de Alumno:</strong></label>
+                        <input asp-for="Codigo" class="form-control" readonly />
+                    </div>
+                    <div class="col-md-6">
+                    <label class="form-label"><strong>Nombres y Apellidos:</strong></label>
+                        <input asp-for="NombreCompleto" class="form-control" readonly />
+                    </div>
+                    <div class="col-md-6">
+                    <label class="form-label"><strong>DNI:</strong></label>
+                        <input asp-for="DNI" class="form-control" readonly />
+                    </div>
+                  
+
+                <!-- Fecha y hora -->
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label><strong>Fecha:</strong></label>
+                        <input asp-for="Fecha" type="date" class="form-control" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label><strong>Hora:</strong></label>
+                        <input asp-for="Hora" type="time" class="form-control" required />
+                    </div>
+                </div>
+
+                <!-- Tipo -->
+                <div class="mb-3 mt-3">
+                    <label><strong>Tipo de Cita</strong></label>
+                    <select asp-for="TipoCita" class="form-select" required>
+                        <option value="">-- Seleccione --</option>
+                        <option>Consulta</option>
+                        <option>Seguimiento</option>
+                        <option>Emergencia Leve</option>
+                    </select>
+                </div>
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="submit" class="btn btn-outline-success px-4">
+                        <i class="bi bi-check-circle me-1"></i>
+                        Registrar
+                    </button>
+                </div>
+
+            
+                </div>
+            </div>
+        </div>
+ 
+
+</form>
+
+

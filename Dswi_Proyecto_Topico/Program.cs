@@ -15,6 +15,7 @@ builder.Services.AddScoped<ReporteAtencionRepository>();
 builder.Services.AddScoped<HistorialReporteRepository>();
 builder.Services.AddScoped<AuthRepository>();
 builder.Services.AddScoped<EnfermeraRepository>();
+builder.Services.AddScoped<CitaRepository>();
 builder.Services.AddSession();
 
 var app = builder.Build();

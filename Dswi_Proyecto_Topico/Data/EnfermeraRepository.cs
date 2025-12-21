@@ -12,44 +12,44 @@ namespace Dswi_Proyecto_Topico.Data
             _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
 
-        public DashboardEnfermeraViewModel ObtenerDashboard()
+        public async Task<DashboardEnfermeraViewModel> ObtenerDashboardAsync()
         {
             var vm = new DashboardEnfermeraViewModel();
 
             using SqlConnection cn = new SqlConnection(_connectionString);
-            cn.Open();
+            await cn.OpenAsync();
 
-            // 🔹 Citas pendientes
+            // Citas pendientes
             SqlCommand cmdPendientes = new SqlCommand(
                 "SELECT COUNT(*) FROM Citas WHERE EstadoCita = 'Pendiente'", cn);
-            vm.CitasPendientes = (int)cmdPendientes.ExecuteScalar();
+            vm.CitasPendientes = (int)await cmdPendientes.ExecuteScalarAsync();
 
-            // 🔹 Pacientes atendidos hoy
+            // Pacientes atendidos hoy
             SqlCommand cmdAtendidos = new SqlCommand(@"
-                SELECT COUNT(*) 
-                FROM Citas 
-                WHERE EstadoCita = 'Atendida'
-                AND CAST(FechaAtencion AS DATE) = CAST(GETDATE() AS DATE)", cn);
-            vm.PacientesAtendidosHoy = (int)cmdAtendidos.ExecuteScalar();
+            SELECT COUNT(*)  FROM Citas 
+            WHERE EstadoCita = 'Atendida'
+            AND CAST(FechaCita AS DATE) = CAST(GETDATE() AS DATE)", cn);
+            vm.PacientesAtendidosHoy = (int)await cmdAtendidos.ExecuteScalarAsync();
 
-            // 🔹 Próximas citas
-            SqlCommand cmdCitas = new SqlCommand(@"
-                SELECT TOP 5 c.CitaId, c.FechaCita, u.NombreCompleto
-                FROM Citas c
-                INNER JOIN Usuarios u ON c.PacienteId = u.UsuarioId
-                WHERE c.FechaCita >= GETDATE()
-                ORDER BY c.FechaCita", cn);
+            //Citas programas para hoy
+            SqlCommand cmdCitasHoy = new SqlCommand(@"
+            SELECT c.CitaId, c.FechaCita, a.NombreCompleto
+             FROM Citas c
+             INNER JOIN Alumno a ON c.AlumnoId = a.AlumnoId
+             WHERE CAST(c.FechaCita AS DATE) = CAST(GETDATE() AS DATE)
+              ORDER BY c.FechaCita", cn);
 
-            using var dr = cmdCitas.ExecuteReader();
-            while (dr.Read())
+
+            using var dr = await cmdCitasHoy.ExecuteReaderAsync();
+            while (await dr.ReadAsync())
             {
-                vm.ProximasCitas.Add(new Cita
+                vm.CitasHoy.Add(new Cita
                 {
-                    CitaId = (int)dr["CitaId"],
-                    FechaCita = (DateTime)dr["FechaCita"],
-                    Paciente = new Usuario
+                    CitaId = dr.GetInt32(0),
+                    FechaCita = dr.GetDateTime(1),
+                    Alumno = new Alumno
                     {
-                        NombreCompleto = dr["NombreCompleto"].ToString()
+                        NombreCompleto = dr.GetString(2)
                     }
                 });
             }

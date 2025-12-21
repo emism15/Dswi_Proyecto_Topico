@@ -27,7 +27,7 @@
             <div class="row align-items-center">
                 <div class="col-md-6">
                     <div class="btn-group" role="group">
-                        <a asp-action="Citas" class="btn @(string.IsNullOrEmpty(estadoFiltro) ? "btn-primary" : "btn-outline-primary")">
+                        <a asp-action="Citas" class="btn @(string.IsNullOrEmpty(estadoFiltro) ? "btn-success" : "btn-outline-success")">
                             <i class="fas fa-list"></i> Todas
                         </a>
                         <a asp-action="Citas" asp-route-estado="Pendiente"
@@ -45,7 +45,7 @@
                     </div>
                 </div>
                 <div class="col-md-6 text-end">
-                    <a asp-action="RegistrarCita" class="btn btn-primary">
+                    <a asp-action="RegistrarCita" class="btn btn-success">
                         <i class="fas fa-plus"></i> Nueva Cita
                     </a>
                     
@@ -92,7 +92,7 @@
 
     <!-- Lista de Citas -->
     <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
+        <div class="card-header bg-success text-white">
             <h5 class="mb-0">
                 <i class="fas fa-list"></i>
                 @if (!string.IsNullOrEmpty(estadoFiltro))
@@ -123,10 +123,10 @@
                     <table class="table table-hover">
                         <thead class="table-light">
                             <tr>
-                                <th><i class="fas fa-hashtag"></i> ID</th>
+                                <th> ID</th>
                                 <th><i class="fas fa-calendar"></i> Fecha/Hora</th>
                                 <th><i class="fas fa-user"></i> Paciente</th>
-                                <th><i class="fas fa-clipboard"></i> Motivo</th>
+                                <th><i class="fas fa-clipboard"></i> Tipo de Cita</th>
                                 <th><i class="fas fa-info-circle"></i> Estado</th>
                                 <th class="text-center">Acciones</th>
                             </tr>
@@ -135,28 +135,17 @@
                             @foreach (var cita in Model.OrderByDescending(c => c.FechaCita))
                             {
                                 <tr>
-                                    <td><strong>#@cita.CitaId</strong></td>
+                                    <td><strong>@cita.CitaId</strong></td>
                                     <td>
                                         <strong>@cita.FechaCita.ToString("dd/MM/yyyy")</strong><br>
                                         <small class="text-muted">@cita.FechaCita.ToString("HH:mm")</small>
                                     </td>
                                     <td>
-                                        <strong>@cita.Paciente.NombreCompleto</strong><br>
-                                        <small class="text-muted">DNI: @cita.Paciente.DNI</small>
+                                        <strong>@cita.Alumno.NombreCompleto</strong><br>
+                                        <small class="text-muted">Codigo: @cita.Alumno.Codigo</small>
                                     </td>
                                     <td>
-                                        <small>
-                                            @if (cita.MotivoConsulta?.Length > 60)
-                                            {
-                                                @cita.MotivoConsulta.Substring(0, 60)
-
-                                                <text>...</text>
-                                            }
-                                            else
-                                            {
-                                                @cita.MotivoConsulta
-                                            }
-                                        </small>
+                                        <small> @cita.TipoCita </small>
                                     </td>
                                     <td>
                                         @if (cita.EstadoCita == "Pendiente")
@@ -181,10 +170,11 @@
                                     <td class="text-center">
                                         @if (cita.EstadoCita == "Pendiente")
                                         {
-                                            <a asp-action="AtenderCita" asp-route-id="@cita.CitaId"
-                                               class="btn btn-sm btn-primary" title="Atender Cita">
-                                                <i class="fas fa-notes-medical"></i> Atender
+                                            <a asp-action="DetalleCita" asp-route-id="@cita.CitaId"
+                                               class="btn btn-sm btn-primary" title="Ver Detalle">
+                                                <i class="fas fa-notes-medical"></i> Detalle
                                             </a>
+
                                         }
                                         else if (cita.EstadoCita == "Atendida")
                                         {

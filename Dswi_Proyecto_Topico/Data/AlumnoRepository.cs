@@ -75,11 +75,7 @@ namespace Dswi_Proyecto_Topico.Data
                 await cmd.ExecuteNonQueryAsync();
             }
         }
+     
 
-
-
-
-        
-
-}
+    }
 }
