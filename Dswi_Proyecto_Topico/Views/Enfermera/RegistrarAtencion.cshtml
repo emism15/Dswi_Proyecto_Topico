@@ -93,7 +93,7 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Hora</label>
-                    <input class="form-control" value="@Model.HoraAtencion.ToString(@"hh\:mm")" readonly />
+                    <input class="form-control" value="@DateTime.Today.Add(Model.HoraAtencion).ToString("hh:mm tt")" readonly  />
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Detalles Clínicos</label>

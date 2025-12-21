@@ -4,6 +4,7 @@ using Dswi_Proyecto_Topico.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Data.SqlClient;
+using Rotativa.AspNetCore;
 
 namespace Dswi_Proyecto_Topico.Controllers
 {
@@ -11,21 +12,24 @@ namespace Dswi_Proyecto_Topico.Controllers
     {
         private readonly AlumnoRepository alumnoRepository;
          private readonly AtencionRepository atencionRepository;
+        private readonly ReporteAtencionRepository reporteAtencionRepository;
+        private readonly HistorialReporteRepository historialReporteRepository;
        
         private readonly EnfermeraRepository _repo;
 
-        public EnfermeraController(AlumnoRepository alumnoRepository, AtencionRepository atencionRepository, EnfermeraRepository repo)
-       
+        public EnfermeraController(AlumnoRepository alumnoRepository, AtencionRepository atencionRepository, ReporteAtencionRepository reporteAtencionRepository /*EnfermeraRepository repo*/, HistorialReporteRepository historialReporteRepository )
         {
             this.alumnoRepository = alumnoRepository;
             this.atencionRepository = atencionRepository;
+            this.reporteAtencionRepository = reporteAtencionRepository;
+            this.historialReporteRepository = historialReporteRepository;
             _repo = repo;
         }
 
         
 
-        [HttpGet]
-        public IActionResult Index()
+        //[HttpGet]
+        /*public IActionResult Index()
         {
             // Seguridad básica
             if (!HttpContext.Session.IsAuthenticated())
@@ -38,7 +42,7 @@ namespace Dswi_Proyecto_Topico.Controllers
             DashboardEnfermeraViewModel vm = _repo.ObtenerDashboard();
 
             return View(vm);
-        }
+        }*/
 
         
 
@@ -164,11 +168,15 @@ namespace Dswi_Proyecto_Topico.Controllers
                 new List<AtencionMedicamentoModel>();
             try
             {
-                await atencionRepository.RegistrarAtencionCompletaAsync(model, medicamentos);
+                int atencionId = await atencionRepository.RegistrarAtencionCompletaAsync(model, medicamentos);
                 HttpContext.Session.Remove("MedicamentosTemp");
 
                 TempData["MensajeExito"] = "Atención registrada correctamente.";
-                return RedirectToAction(nameof(RegistrarAtencion));
+                return RedirectToAction(
+             "GenerarReporte",
+             "Enfermera",
+             new { atencionId }
+         );
             }
 
             catch (SqlException e)
@@ -261,8 +269,80 @@ namespace Dswi_Proyecto_Topico.Controllers
         }
 
 
-        
+        [HttpGet]
+        public async Task<IActionResult> GenerarReporte(int atencionId)
+        {
+            var reporte = await reporteAtencionRepository.ObtenerReporteAtencionAsync(atencionId);
 
+            if(reporte == null)
+            {
+                TempData["Error"] = "No se puee generar el reporte. La atencion no existe o no está confirmada.";
+                return RedirectToAction("RegistrarAtencion", "Enfermera");
+            }
+
+            //RDLC - mas adelante
+            reporte.EsVistaGeneracion = true;
+            return View("VistaPreviaReporte", reporte);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ConfirmarGeneracionReporte(int atencionId)
+        {
+            await reporteAtencionRepository.MarcarReporteGeneradoAsync(atencionId);
+
+            TempData["MensajeExito"] = "Reporte generado correctamente.";
+            return RedirectToAction("RegistrarAtencion", "Enfermera");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> DescargarReportePdf(int id)
+        {
+            var reporte = await reporteAtencionRepository.ObtenerReporteParaPdfAsync(id);
+
+            if (reporte == null)
+            {
+                TempData["Error"] = "No se puee descargar el reporte.";
+                return RedirectToAction(nameof(HistorialReportes));
+            }
+            return new ViewAsPdf("ReporteAtencionPdf", reporte)
+            {
+                FileName = $"ReporteAtencion_{reporte.Codigo}.pdf",
+                PageSize = Rotativa.AspNetCore.Options.Size.A4
+            };
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> HistorialReportes()
+        {
+            var lista = await historialReporteRepository.ListarHistorialReporteAsync(null, null, null);
+            return View(lista);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> HistorialReportes(FiltroHistorialReporteModel filtro)
+        {
+            var lista = await historialReporteRepository.ListarHistorialReporteAsync(
+                filtro.Codigo,
+                filtro.FechaInicio,
+                filtro.FechaFin);
+
+            return View(lista);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> VerDetalleReporte(int atencionId)
+        {
+            var reporte = await historialReporteRepository.ObtenerReporteDetalleAsync(atencionId);
+            if(reporte == null)
+            {
+                TempData["Error"] = "No se pudo cargar el reporte.";
+                return RedirectToAction("HistorialReportes");
+
+            }
+            reporte.EsVistaGeneracion = false;
+            return View("VistaPreviaReporte", reporte);
+        }
 
     }
 }
