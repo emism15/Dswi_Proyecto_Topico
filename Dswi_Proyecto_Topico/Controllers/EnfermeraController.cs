@@ -4,6 +4,7 @@ using Dswi_Proyecto_Topico.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Data.SqlClient;
+using Rotativa.AspNetCore;
 
 namespace Dswi_Proyecto_Topico.Controllers
 {
@@ -259,7 +260,7 @@ namespace Dswi_Proyecto_Topico.Controllers
             }
 
             //RDLC - mas adelante
-
+            reporte.EsVistaGeneracion = true;
             return View("VistaPreviaReporte", reporte);
         }
 
@@ -280,19 +281,13 @@ namespace Dswi_Proyecto_Topico.Controllers
             if (reporte == null)
             {
                 TempData["Error"] = "No se puee descargar el reporte.";
-                return RedirectToAction(nameof(RegistrarAtencion));
+                return RedirectToAction(nameof(HistorialReportes));
             }
-            var rutaRdlc = Path.Combine(
-                Directory.GetCurrentDirectory(),
-                "Views", "Enfermera", "ReporteAtencion.rdlc");
-
-            var rdlcService = new RdlcReportService();
-            var pdfBytes = rdlcService.GenerarReporteAtencionPdf(reporte, rutaRdlc);
-
-            return File(
-                pdfBytes, "application/pdf",
-                $"ReporteAtencion_{reporte.Codigo}_{DateTime.Now:yyyyMMddHHmm}.pdf"
-                );
+            return new ViewAsPdf("ReporteAtencionPdf", reporte)
+            {
+                FileName = $"ReporteAtencion_{reporte.Codigo}.pdf",
+                PageSize = Rotativa.AspNetCore.Options.Size.A4
+            };
         }
 
 
@@ -312,6 +307,20 @@ namespace Dswi_Proyecto_Topico.Controllers
                 filtro.FechaFin);
 
             return View(lista);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> VerDetalleReporte(int atencionId)
+        {
+            var reporte = await historialReporteRepository.ObtenerReporteDetalleAsync(atencionId);
+            if(reporte == null)
+            {
+                TempData["Error"] = "No se pudo cargar el reporte.";
+                return RedirectToAction("HistorialReportes");
+
+            }
+            reporte.EsVistaGeneracion = false;
+            return View("VistaPreviaReporte", reporte);
         }
 
     }

@@ -46,5 +46,53 @@ namespace Dswi_Proyecto_Topico.Data
                 }
             }
         }
+
+        public async Task<ReporteAtencionModel> ObtenerReporteDetalleAsync(int atencionId)
+        {
+            using var conn = new SqlConnection(_connectionString);
+            using var cmd = new SqlCommand("sp_ObtenerReporteAtencion", conn);
+
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@AtencionId", atencionId);
+
+            await conn.OpenAsync();
+
+            using var reader = await cmd.ExecuteReaderAsync();
+
+            if (!await reader.ReadAsync())
+                return null;
+
+            var reporte = new ReporteAtencionModel
+            {
+                AtencionId = atencionId,
+                Codigo = reader["CodAlumno"].ToString()!,
+                NombreCompleto = reader["NombreCompleto"].ToString()!,
+                DNI = reader["DNI"].ToString()!,
+                Telefono = reader["Telefono"].ToString()!,
+                Correo = reader["Correo"].ToString()!,
+                FechaAtencion = (DateTime)reader["Fecha"],
+                HoraAtencion = (TimeSpan)reader["Hora"],
+                DetallesClinicos = reader["DetallesClinicos"].ToString()!,
+                DiagnosticoPreliminar = reader["DiagnosticoPreliminar"].ToString()!,
+                Medicamentos = new List<ReporteMedicamentoModel>()
+            };
+
+            if (await reader.NextResultAsync())
+            {
+                while (await reader.ReadAsync())
+                {
+                    reporte.Medicamentos.Add(new ReporteMedicamentoModel
+                    {
+                        Nombre = reader["Nombre"].ToString()!,
+                        Cantidad = (int)reader["Cantidad"]
+                    });
+                }
+            }
+
+            return reporte;
+        }
+
+
+
     }
 }

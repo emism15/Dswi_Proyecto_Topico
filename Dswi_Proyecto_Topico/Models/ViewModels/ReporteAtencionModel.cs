@@ -15,6 +15,7 @@
         public string DiagnosticoPreliminar { get; set; }
 
         public bool ReporteGenerado { get; set; }
+        public bool EsVistaGeneracion { get; set; }
 
         public List<ReporteMedicamentoModel> Medicamentos { get; set; }
 

@@ -79,7 +79,9 @@ namespace Dswi_Proyecto_Topico.Data
 
         public async Task MarcarReporteGeneradoAsync(int atencionId)
         {
-            var sql = @"UPDATE Atencion SET ReporteGenerado = 1 WHERE AtencionId = @AtencionId";
+            var sql = @"UPDATE Atencion SET ReporteGenerado = 1,
+                                                  FechaGeneracionReporte = GETDATE()
+                                                  WHERE AtencionId = @AtencionId";
             using(var conn = new SqlConnection(_connectionString))
                 using(var cmd = new SqlCommand(sql, conn))
             {
@@ -89,6 +91,7 @@ namespace Dswi_Proyecto_Topico.Data
                 await cmd.ExecuteNonQueryAsync();
             }
         }
+       
 
         public async Task<ReporteAtencionModel> ObtenerReporteParaPdfAsync(int atencionId)
         {
