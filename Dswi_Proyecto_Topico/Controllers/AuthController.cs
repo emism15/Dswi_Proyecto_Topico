@@ -16,7 +16,8 @@ namespace Dswi_Proyecto_Topico.Controllers
         private readonly UserManager<ApplicationUser> userManager;
         private readonly SignInManager<ApplicationUser> signInManager;
 
-        public AuthController(AuthService authService, UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        public AuthController(/*AuthService authService*/ AuthRepository authRepo, UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        
         {
             _authService = authService;
             this.userManager = userManager;
