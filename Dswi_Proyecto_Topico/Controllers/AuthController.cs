@@ -1,9 +1,10 @@
-﻿using Dswi_Proyecto_Topico.Services;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Dswi_Proyecto_Topico.Data;
 using Dswi_Proyecto_Topico.Helpers;
 using Dswi_Proyecto_Topico.Models.ViewModels;
+using Dswi_Proyecto_Topico.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 
 
 namespace Dswi_Proyecto_Topico.Controllers
@@ -12,11 +13,12 @@ namespace Dswi_Proyecto_Topico.Controllers
     public class AuthController : Controller
     {
         private readonly AuthService _authService;
+        private readonly AuthRepository authRepo;
 
         private readonly UserManager<ApplicationUser> userManager;
         private readonly SignInManager<ApplicationUser> signInManager;
 
-        public AuthController(/*AuthService authService*/ AuthRepository authRepo, UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        public AuthController(AuthService authService, AuthRepository authRepo, UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
         
         {
             _authService = authService;
