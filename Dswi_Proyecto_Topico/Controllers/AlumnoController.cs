@@ -10,6 +10,8 @@ namespace Dswi_Proyecto_Topico.Controllers
     public class AlumnoController : Controller
     {
 
+
+
         private readonly HistorialReporteRepository historialReporteRepository;
         private readonly ReporteAtencionRepository reporteAtencionRepository;
         public AlumnoController(HistorialReporteRepository historialReporteRepository, ReporteAtencionRepository reporteAtencionRepository)
