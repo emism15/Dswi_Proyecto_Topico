@@ -174,6 +174,7 @@ namespace Dswi_Proyecto_Topico.Controllers
                 ModelState.AddModelError("", "Credenciales incorrectas");
                 return View(model);
             }
+            HttpContext.Session.SetString("CodAlumno", user.Codigo);
 
             if (user.DebeCambiarPassword)
             {
