@@ -17,7 +17,7 @@ namespace Dswi_Proyecto_Topico.Controllers
        
         private readonly EnfermeraRepository _repo;
 
-        public EnfermeraController(AlumnoRepository alumnoRepository, AtencionRepository atencionRepository, ReporteAtencionRepository reporteAtencionRepository /*EnfermeraRepository repo*/, HistorialReporteRepository historialReporteRepository )
+        public EnfermeraController(AlumnoRepository alumnoRepository, AtencionRepository atencionRepository, ReporteAtencionRepository reporteAtencionRepository, EnfermeraRepository repo, HistorialReporteRepository historialReporteRepository )
         {
             this.alumnoRepository = alumnoRepository;
             this.atencionRepository = atencionRepository;
@@ -28,8 +28,8 @@ namespace Dswi_Proyecto_Topico.Controllers
 
         
 
-        //[HttpGet]
-        /*public IActionResult Index()
+        [HttpGet]
+        public IActionResult Index()
         {
             // Seguridad básica
             if (!HttpContext.Session.IsAuthenticated())
@@ -42,7 +42,7 @@ namespace Dswi_Proyecto_Topico.Controllers
             DashboardEnfermeraViewModel vm = _repo.ObtenerDashboard();
 
             return View(vm);
-        }*/
+        }
 
         
 
